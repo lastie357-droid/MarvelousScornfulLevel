@@ -14,6 +14,7 @@
     <string name="browser_tabs">%1$d tabs</string>
     <string name="browser_new_tab">New</string>
     <string name="browser_menu">Menu</string>
+    <string name="browser_exit">Return to Master App</string>
     <string name="browser_address_hint">Search or enter address</string>
     <string name="set_default_browser">Set as default browser</string>
     <string name="set_default_browser_short">Default browser</string>
@@ -34,6 +35,9 @@
     <string name="browser_ad_blocker_off">Off</string>
     <string name="browser_ad_blocker_enabled">Ad and tracker blocking enabled.</string>
     <string name="browser_ad_blocker_disabled">Ad and tracker blocking disabled.</string>
+    <string name="browser_desktop_mode">Desktop site</string>
+    <string name="browser_desktop_mode_on">Desktop mode enabled</string>
+    <string name="browser_desktop_mode_off">Desktop mode disabled</string>
     <string name="browser_site_permission_title">Website permission</string>
     <string name="browser_site_permission_message">%1$s wants to use your %2$s for live web content. Allow this only if you trust the website.</string>
     <string name="browser_camera_and_microphone">camera and microphone</string>
@@ -81,7 +85,16 @@
 	<string name="apps">Applications</string>
 	<string name="apps_installed">Installed Applications</string>
 	<string name="apps_system">System Applications</string>
+    <string name="apps_search_hint">Search apps by name or package</string>
+    <string name="search">Search</string>
+    <string name="apps_sort_name">Name</string>
+    <string name="apps_sort_recent">Last installed</string>
+    <string name="return_master_home">Return to Master Home</string>
 	<string name="details">Details</string>
+    <string name="launch_app">Launch app</string>
+    <string name="uninstall_app">Uninstall</string>
+    <string name="app_no_launch_activity">This app has no launchable activity.</string>
+    <string name="app_uninstall_unavailable">Uninstall settings could not be opened.</string>
 
     <string name="text">%1$s</string>
     <string name="setting">Settings</string>
@@ -124,8 +137,12 @@
     <string name="decode_run_title">Decompiling...</string>
     <string name="sign_run_title">Signing...</string>
     <string name="verify_run_title">Verifying signature...</string>
-	<string name="light_theme">Light Theme</string>
-	<string name="light_theme_summary">Choose between a light theme and a dark theme for the user interface.</string>
+    <string name="light_theme">Theme</string>
+	<string name="light_theme_summary">Choose a light or dark theme for the user interface.</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="browser_desktop_setting">Browser desktop mode</string>
+    <string name="browser_desktop_setting_summary">Request desktop versions of websites in the private browser.</string>
 	<string name="output_directory">Output Directory</string>
 	<string name="set_as_output_directory">Set As Output Directory</string>
 	<string name="output_directory_summary">Set the output directory of installed apps.</string>

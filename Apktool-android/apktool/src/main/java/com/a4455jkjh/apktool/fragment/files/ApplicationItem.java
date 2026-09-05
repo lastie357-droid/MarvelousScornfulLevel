@@ -1,9 +1,11 @@
 package com.a4455jkjh.apktool.fragment.files;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.view.View;
 import android.widget.ImageView;
 import com.a4455jkjh.apktool.R;
@@ -41,6 +43,12 @@ public class ApplicationItem extends ErrorTree {
 									case R.id.details:
 										showAppDetails(ctx, pkg, pm);
 										break;
+									case R.id.launch_app:
+										launchApp(ctx, pkg, pm);
+										break;
+									case R.id.uninstall_app:
+										uninstallApp(ctx, pkg);
+										break;
 									case R.id.import_framework:
 										new ImportFrameworkTask(ctx).execute(file);
 										break;
@@ -64,6 +72,26 @@ public class ApplicationItem extends ErrorTree {
 			case R.id.decompile_dex:
 				new DecodeTask(ctx, null, 1, name).execute(file);
 				break;
+		}
+	}
+	private static void launchApp(Context context, PackageInfo pkg, PackageManager pm) {
+		Intent launch = pm.getLaunchIntentForPackage(pkg.packageName);
+		if (launch == null) {
+			android.widget.Toast.makeText(context, R.string.app_no_launch_activity,
+					android.widget.Toast.LENGTH_SHORT).show();
+			return;
+		}
+		context.startActivity(launch);
+	}
+	private static void uninstallApp(Context context, PackageInfo pkg) {
+		Intent uninstall = new Intent(Intent.ACTION_DELETE);
+		uninstall.setData(Uri.parse("package:" + pkg.packageName));
+		uninstall.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		try {
+			context.startActivity(uninstall);
+		} catch (Exception exception) {
+			android.widget.Toast.makeText(context, R.string.app_uninstall_unavailable,
+					android.widget.Toast.LENGTH_SHORT).show();
 		}
 	}
 	protected static void showAppDetails(Context context, PackageInfo pkg, PackageManager pm) {

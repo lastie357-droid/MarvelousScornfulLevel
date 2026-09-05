@@ -80,7 +80,25 @@ public class Settings {
 	}
 
 	private static void loadApplicationSettings(SharedPreferences sp) {
-		boolean lightTheme = sp.getBoolean("light_theme", true);
+		String themeMode = null;
+		try {
+			themeMode = sp.getString("theme_mode", null);
+		} catch (ClassCastException ignored) {
+			// Older releases stored this preference as a boolean.
+		}
+		boolean lightTheme;
+		if (themeMode != null) {
+			lightTheme = !"dark".equals(themeMode);
+		} else {
+			// Keep the old boolean preference readable after upgrading.
+			boolean legacyLight = true;
+			try {
+				legacyLight = sp.getBoolean("light_theme", true);
+			} catch (ClassCastException ignored) {
+				// A malformed preference falls back to the light theme.
+			}
+			lightTheme = legacyLight;
+		}
 		if (lightTheme != Settings.lightTheme)
 			isThemeChanged = true;
 		Settings.lightTheme = lightTheme;

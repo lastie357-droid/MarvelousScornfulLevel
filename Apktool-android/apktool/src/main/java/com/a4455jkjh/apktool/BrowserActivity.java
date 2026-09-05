@@ -36,8 +36,10 @@ import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.GridLayout;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.io.ByteArrayInputStream;
@@ -63,12 +65,17 @@ public class BrowserActivity extends ThemedActivity {
     private static final String PREFS = "master_browser";
     private static final String HISTORY_KEY = "history";
     private static final String DOWNLOADS_KEY = "downloads";
+    private static final String TABS_KEY = "tabs";
+    private static final String CURRENT_TAB_KEY = "current_tab";
     private static final String AUTOFILL_ONBOARDING_KEY = "autofill_onboarding_shown";
     private static final String AD_BLOCKING_KEY = "ad_blocking_enabled";
     private static final int WEB_PERMISSION_REQUEST_CODE = 701;
     private static final int STORAGE_PERMISSION_REQUEST_CODE = 702;
     private static final int MAX_HISTORY = 100;
     private static final int MAX_DOWNLOADS = 50;
+    private static final String DESKTOP_USER_AGENT =
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                    + "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 
     private final ArrayList<BrowserTab> tabs = new ArrayList<BrowserTab>();
     private EditText addressBar;
@@ -107,43 +114,26 @@ public class BrowserActivity extends ThemedActivity {
     @Override
     protected void init(Bundle savedInstanceState) {
         setContentView(R.layout.browser);
-        getActionBar().setTitle(R.string.browser);
+        if (getActionBar() != null) {
+            getActionBar().hide();
+        }
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
 
         addressBar = findViewById(R.id.browser_address);
         webViewContainer = findViewById(R.id.browser_webview_container);
 
-        findViewById(R.id.browser_back).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (getCurrentWebView().canGoBack()) {
-                    getCurrentWebView().goBack();
-                }
-            }
-        });
-        findViewById(R.id.browser_forward).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (getCurrentWebView().canGoForward()) {
-                    getCurrentWebView().goForward();
-                }
-            }
-        });
-        findViewById(R.id.browser_refresh).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                getCurrentWebView().reload();
-            }
-        });
         findViewById(R.id.browser_home).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 getCurrentWebView().loadUrl(HOME_URL);
-            }
-        });
-        findViewById(R.id.browser_gmail).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                getCurrentWebView().loadUrl(GMAIL_URL);
             }
         });
         findViewById(R.id.browser_tab_count).setOnClickListener(new View.OnClickListener() {
@@ -189,7 +179,7 @@ public class BrowserActivity extends ThemedActivity {
         });
 
         Uri incoming = getIntent().getData();
-        createTab(incoming == null ? null : incoming.toString());
+        restoreTabs(incoming == null ? null : incoming.toString());
         showAutofillOnboardingIfNeeded();
     }
 
@@ -232,6 +222,7 @@ public class BrowserActivity extends ThemedActivity {
         settings.setSupportMultipleWindows(true);
         settings.setUseWideViewPort(true);
         settings.setLoadWithOverviewMode(true);
+        applyBrowserSettings(settings);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             settings.setAllowFileAccessFromFileURLs(false);
             settings.setAllowUniversalAccessFromFileURLs(false);
@@ -295,6 +286,7 @@ public class BrowserActivity extends ThemedActivity {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 tab.url = url;
+                improvePasswordFieldAutofill(view);
                 rememberHistory(tab);
                 updateCurrentChrome(tab);
             }
@@ -344,6 +336,74 @@ public class BrowserActivity extends ThemedActivity {
             }
         });
         return webView;
+    }
+
+    private void applyBrowserSettings(WebSettings settings) {
+        boolean desktop = getSharedPreferences(PREFS, MODE_PRIVATE)
+                .getBoolean("browser_desktop_mode", true);
+        settings.setUserAgentString(desktop ? DESKTOP_USER_AGENT : null);
+    }
+
+    private void improvePasswordFieldAutofill(final WebView webView) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return;
+        }
+        // WebView exposes the page's autocomplete metadata to Android Autofill.
+        // Adding the standard hints makes password providers recognize fields
+        // immediately without Master App ever seeing or storing a password.
+        webView.evaluateJavascript(
+                "(function(){"
+                        + "var p=document.querySelectorAll('input[type=password]');"
+                        + "for(var i=0;i<p.length;i++){p[i].setAttribute('autocomplete','current-password');"
+                        + "var f=p[i].form;if(f){var u=f.querySelector('input:not([type=password])');"
+                        + "if(u&&!u.getAttribute('autocomplete'))u.setAttribute('autocomplete','username');}}"
+                        + "})();", null);
+    }
+
+    private void restoreTabs(String incomingUrl) {
+        String encoded = getSharedPreferences(PREFS, MODE_PRIVATE).getString(TABS_KEY, "");
+        int restoredCurrent = getSharedPreferences(PREFS, MODE_PRIVATE)
+                .getInt(CURRENT_TAB_KEY, 0);
+        boolean restored = false;
+        if (encoded.length() > 0 && incomingUrl == null) {
+            try {
+                JSONArray savedTabs = new JSONArray(encoded);
+                for (int i = 0; i < savedTabs.length(); i++) {
+                    String url = savedTabs.optString(i, HOME_URL);
+                    if (url.length() > 0) {
+                        createTab(url);
+                        restored = true;
+                    }
+                }
+            } catch (Exception ignored) {
+                // Fall through to a clean home tab if local tab state is corrupt.
+            }
+            if (restored && restoredCurrent >= 0 && restoredCurrent < tabs.size()) {
+                switchToTab(restoredCurrent);
+            }
+        }
+        if (!restored) {
+            createTab(incomingUrl == null ? null : incomingUrl);
+        } else if (incomingUrl != null) {
+            navigate(incomingUrl);
+        }
+    }
+
+    private void saveTabs() {
+        JSONArray savedTabs = new JSONArray();
+        for (BrowserTab tab : tabs) {
+            String url = tab.webView.getUrl();
+            if (url == null || url.length() == 0) {
+                url = tab.url;
+            }
+            if (url != null && url.length() > 0) {
+                savedTabs.put(url);
+            }
+        }
+        getSharedPreferences(PREFS, MODE_PRIVATE).edit()
+                .putString(TABS_KEY, savedTabs.toString())
+                .putInt(CURRENT_TAB_KEY, Math.max(0, currentTab))
+                .apply();
     }
 
     private WebResourceResponse emptyBlockedResponse() {
@@ -746,12 +806,8 @@ public class BrowserActivity extends ThemedActivity {
         }
         addressBar.setText(tab.url);
         addressBar.setSelection(addressBar.length());
-        String title = tab.title.length() == 0 ? getString(R.string.browser) : tab.title;
-        getActionBar().setTitle(title);
         ((TextView) findViewById(R.id.browser_tab_count))
-                .setText(getString(R.string.browser_tabs, tabs.size()));
-        findViewById(R.id.browser_back).setEnabled(tab.webView.canGoBack());
-        findViewById(R.id.browser_forward).setEnabled(tab.webView.canGoForward());
+                .setText(String.valueOf(tabs.size()));
     }
 
     private void navigate(String value) {
@@ -771,37 +827,109 @@ public class BrowserActivity extends ThemedActivity {
     }
 
     private void showTabs() {
-        String[] labels = new String[tabs.size()];
+        final Dialog dialog = new Dialog(this);
+        LinearLayout outer = new LinearLayout(this);
+        outer.setOrientation(LinearLayout.VERTICAL);
+        outer.setPadding(18, 12, 18, 12);
+        TextView heading = new TextView(this);
+        heading.setText(getString(R.string.browser_tabs, tabs.size()));
+        heading.setTextSize(20);
+        heading.setTextColor(getResources().getColor(R.color.master_text));
+        outer.addView(heading, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        ScrollView scroll = new ScrollView(this);
+        GridLayout grid = new GridLayout(this);
+        grid.setColumnCount(2);
+        grid.setUseDefaultMargins(true);
         for (int i = 0; i < tabs.size(); i++) {
-            BrowserTab tab = tabs.get(i);
-            labels[i] = (i + 1) + ". "
-                    + (tab.title.length() == 0 ? getString(R.string.browser) : tab.title);
+            final int tabIndex = i;
+            final BrowserTab tab = tabs.get(i);
+            LinearLayout card = new LinearLayout(this);
+            card.setOrientation(LinearLayout.VERTICAL);
+            card.setPadding(12, 10, 12, 10);
+            card.setBackgroundResource(R.drawable.browser_button);
+            TextView title = new TextView(this);
+            title.setText((i + 1) + "  "
+                    + (tab.title.length() == 0 ? getString(R.string.browser) : tab.title));
+            title.setTextColor(getResources().getColor(R.color.master_text));
+            title.setTextSize(15);
+            title.setMaxLines(2);
+            card.addView(title, new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            TextView url = new TextView(this);
+            url.setText(tab.url);
+            url.setTextColor(getResources().getColor(R.color.master_muted));
+            url.setTextSize(11);
+            url.setMaxLines(2);
+            card.addView(url, new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            Button close = new Button(this);
+            close.setText("×");
+            close.setTextSize(16);
+            close.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    removeTab(tabIndex);
+                    dialog.dismiss();
+                    saveTabs();
+                }
+            });
+            card.addView(close, new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, 38));
+            card.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    switchToTab(tabIndex);
+                    dialog.dismiss();
+                }
+            });
+            GridLayout.Spec row = GridLayout.spec(i / 2);
+            GridLayout.Spec column = GridLayout.spec(i % 2, 1f);
+            GridLayout.LayoutParams cardParams = new GridLayout.LayoutParams(row, column);
+            cardParams.width = 0;
+            cardParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+            grid.addView(card, cardParams);
         }
-        new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.browser_tabs, tabs.size()))
-                .setItems(labels, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        switchToTab(which);
-                    }
-                })
-                .setPositiveButton(R.string.browser_new_tab, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        createTab(null);
-                    }
-                })
-                .show();
+        scroll.addView(grid, new ScrollView.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        outer.addView(scroll, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
+        Button newTab = new Button(this);
+        newTab.setText(R.string.browser_new_tab);
+        newTab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                createTab(null);
+                dialog.dismiss();
+            }
+        });
+        outer.addView(newTab, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        dialog.setTitle(R.string.browser_tabs);
+        dialog.setContentView(outer);
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams();
+        params.copyFrom(dialog.getWindow().getAttributes());
+        params.width = WindowManager.LayoutParams.MATCH_PARENT;
+        params.height = WindowManager.LayoutParams.MATCH_PARENT;
+        dialog.show();
+        dialog.getWindow().setAttributes(params);
     }
 
     private void showBrowserMenu() {
         final String[] options = new String[] {
+                getString(R.string.browser_exit),
                 getString(R.string.browser_history),
                 getString(R.string.browser_downloads),
                 getString(R.string.set_default_browser),
                 getString(R.string.browser_clear_data),
                 getString(R.string.browser_sign_in_note),
                 getString(R.string.browser_password_autofill),
+                getString(R.string.browser_desktop_mode)
+                        + " ("
+                        + getString(isDesktopMode()
+                        ? R.string.browser_desktop_mode_on
+                        : R.string.browser_desktop_mode_off)
+                        + ")",
                 getString(R.string.browser_ad_blocker)
                         + " ("
                         + getString(isAdBlockingEnabled()
@@ -815,23 +943,73 @@ public class BrowserActivity extends ThemedActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         if (which == 0) {
-                            showHistory();
+                            returnToMasterHome();
                         } else if (which == 1) {
-                            showDownloads();
+                            showHistory();
                         } else if (which == 2) {
-                            openDefaultBrowserSettings(BrowserActivity.this);
+                            showDownloads();
                         } else if (which == 3) {
-                            clearBrowsingData();
+                            openDefaultBrowserSettings(BrowserActivity.this);
                         } else if (which == 4) {
-                            showGoogleSignInNotice();
+                            clearBrowsingData();
                         } else if (which == 5) {
+                            showGoogleSignInNotice();
+                        } else if (which == 6) {
                             openAutofillSettings();
+                        } else if (which == 7) {
+                            toggleDesktopMode();
                         } else {
                             toggleAdBlocking();
                         }
                     }
                 })
                 .show();
+    }
+
+    private boolean isDesktopMode() {
+        return getSharedPreferences(PREFS, MODE_PRIVATE)
+                .getBoolean("browser_desktop_mode", true);
+    }
+
+    private void toggleDesktopMode() {
+        boolean enabled = !isDesktopMode();
+        getSharedPreferences(PREFS, MODE_PRIVATE).edit()
+                .putBoolean("browser_desktop_mode", enabled)
+                .apply();
+        for (BrowserTab tab : tabs) {
+            applyBrowserSettings(tab.webView.getSettings());
+        }
+        Toast.makeText(this, enabled ? R.string.browser_desktop_mode_on
+                : R.string.browser_desktop_mode_off, Toast.LENGTH_SHORT).show();
+        getCurrentWebView().reload();
+    }
+
+    private void returnToMasterHome() {
+        saveTabs();
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(intent);
+        finish();
+    }
+
+    private void removeTab(int index) {
+        if (index < 0 || index >= tabs.size()) {
+            return;
+        }
+        BrowserTab removed = tabs.remove(index);
+        webViewContainer.removeView(removed.webView);
+        removed.webView.destroy();
+        if (tabs.isEmpty()) {
+            currentTab = -1;
+            createTab(null);
+            return;
+        }
+        if (currentTab >= tabs.size()) {
+            currentTab = tabs.size() - 1;
+        } else if (index < currentTab) {
+            currentTab--;
+        }
+        switchToTab(currentTab);
     }
 
     private void toggleAdBlocking() {
@@ -1123,16 +1301,27 @@ public class BrowserActivity extends ThemedActivity {
             return;
         }
         if (tabs.size() > 1) {
-            BrowserTab tab = tabs.remove(currentTab);
-            webViewContainer.removeView(tab.webView);
-            tab.webView.destroy();
-            switchToTab(Math.max(0, currentTab - 1));
+            removeTab(currentTab);
+            saveTabs();
             return;
         }
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        startActivity(intent);
-        super.onBackPressed();
+        returnToMasterHome();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (currentTab >= 0) {
+            for (BrowserTab tab : tabs) {
+                applyBrowserSettings(tab.webView.getSettings());
+            }
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        saveTabs();
+        super.onPause();
     }
 
     @Override

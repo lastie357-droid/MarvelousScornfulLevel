@@ -1,9 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen
     xmlns:android="http://schemas.android.com/apk/res/android">
-    <CheckBoxPreference
+    <ListPreference
         android:title="@string/light_theme"
-        android:key="light_theme"
+        android:key="theme_mode"
         android:summary="@string/light_theme_summary"
+        android:entries="@array/theme_entries"
+        android:entryValues="@array/theme_values"
+        android:defaultValue="light" />
+    <CheckBoxPreference
+        android:title="@string/browser_desktop_setting"
+        android:key="browser_desktop_mode"
+        android:summary="@string/browser_desktop_setting_summary"
         android:defaultValue="true" />
 </PreferenceScreen>

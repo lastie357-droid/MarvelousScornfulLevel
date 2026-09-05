@@ -29,6 +29,10 @@ public class FilesPagerAdapter extends PagerAdapter {
 		errors.init(frag);
 		apps.init(frag);
 	}
+
+	public void refreshApplications() {
+		apps.refresh();
+	}
 	@Override
 	public int getCount() {
 		return 3;

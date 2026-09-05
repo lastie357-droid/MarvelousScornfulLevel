@@ -13,6 +13,12 @@
         android:id="@+id/details"
 		android:title="@string/details"/>
 	<item
+        android:id="@+id/launch_app"
+		android:title="@string/launch_app"/>
+	<item
+        android:id="@+id/uninstall_app"
+		android:title="@string/uninstall_app"/>
+	<item
         android:id="@+id/import_framework"
 		android:title="@string/import_framework"/>
 </menu>

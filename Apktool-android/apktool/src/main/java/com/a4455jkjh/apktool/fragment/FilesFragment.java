@@ -61,6 +61,14 @@ public class FilesFragment extends Fragment {
 								   Manifest.permission.WRITE_EXTERNAL_STORAGE},
 							   10);
 	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		if (adapter != null) {
+			adapter.refreshApplications();
+		}
+	}
 	private void init(Bundle savedInstanceState) {
 		adapter.init(savedInstanceState, this);
 		editor.init();

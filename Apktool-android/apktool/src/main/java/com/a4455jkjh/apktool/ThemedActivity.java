@@ -3,12 +3,17 @@ package com.a4455jkjh.apktool;
 import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
+import android.app.StatusBarManager;
+import android.view.MotionEvent;
 import android.view.View;
 import androidx.fragment.app.FragmentActivity;
 import com.a4455jkjh.apktool.R;
 import com.a4455jkjh.apktool.util.Settings;
 
 public abstract class ThemedActivity extends FragmentActivity {
+	private float twoFingerStartY;
+	private boolean twoFingerTracking;
+	private boolean notificationPanelRequested;
 
 	protected abstract void init(Bundle savedInstanceState);
 	@Override
@@ -38,6 +43,37 @@ public abstract class ThemedActivity extends FragmentActivity {
 				view.setSystemUiVisibility(flags);
 			}
 		}
+	}
+
+	@Override
+	public boolean dispatchTouchEvent(MotionEvent event) {
+		if (event.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN
+				&& event.getPointerCount() >= 2) {
+			twoFingerStartY = event.getY();
+			twoFingerTracking = true;
+			notificationPanelRequested = false;
+		} else if (twoFingerTracking
+				&& event.getActionMasked() == MotionEvent.ACTION_MOVE
+				&& event.getPointerCount() >= 2
+				&& !notificationPanelRequested
+				&& event.getY() - twoFingerStartY > 80) {
+			notificationPanelRequested = true;
+			try {
+				StatusBarManager statusBar =
+						(StatusBarManager) getSystemService(STATUS_BAR_SERVICE);
+				java.lang.reflect.Method expand =
+						StatusBarManager.class.getMethod("expandNotificationsPanel");
+				expand.setAccessible(true);
+				expand.invoke(statusBar);
+			} catch (Exception ignored) {
+				// Android only permits this API to system apps on some devices.
+			}
+		} else if (event.getActionMasked() == MotionEvent.ACTION_UP
+				|| event.getActionMasked() == MotionEvent.ACTION_CANCEL) {
+			twoFingerTracking = false;
+			notificationPanelRequested = false;
+		}
+		return super.dispatchTouchEvent(event);
 	}
 
 
