@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="1280" viewBox="0 0 720 1280">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#05080d" flood-opacity="0.35"/>
+    </filter>
+    <linearGradient id="primary" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#29b6f6"/>
+      <stop offset="1" stop-color="#03a9f4"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Android-style portrait screen -->
+  <rect width="720" height="1280" rx="24" fill="#10151f"/>
+  <rect x="0" y="0" width="720" height="54" fill="#0b1018"/>
+  <text x="38" y="35" fill="#dbe7f3" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="600">9:41</text>
+  <text x="578" y="35" fill="#dbe7f3" font-family="DejaVu Sans, Arial, sans-serif" font-size="17">▮▮▮  Wi-Fi  ▰</text>
+
+  <!-- Home header -->
+  <g text-anchor="middle">
+    <rect x="324" y="112" width="72" height="72" rx="18" fill="#1b2330" stroke="#334154" stroke-width="2"/>
+    <path d="M341 153h38l-5 17h-28z M347 145h24l4 8h-32z M354 137h10v8h-10z" fill="none" stroke="#29b6f6" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M348 159h4m8 0h4m8 0h4" stroke="#29b6f6" stroke-width="3" stroke-linecap="round"/>
+    <text x="360" y="234" fill="#ffffff" font-family="DejaVu Sans, Arial, sans-serif" font-size="38" font-weight="700">Master App</text>
+    <text x="360" y="272" fill="#9eacbd" font-family="DejaVu Sans, Arial, sans-serif" font-size="19">Your Apktool workspace and private browser</text>
+  </g>
+
+  <!-- Tools label -->
+  <text x="48" y="343" fill="#29b6f6" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="700" letter-spacing="2">TOOLS</text>
+
+  <!-- Primary action -->
+  <g filter="url(#shadow)">
+    <rect x="48" y="370" width="624" height="76" rx="14" fill="url(#primary)"/>
+  </g>
+  <text x="78" y="418" fill="#08111d" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="700">Open Apktool</text>
+  <path d="M623 408l13 13 13-13" fill="none" stroke="#08111d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Secondary actions -->
+  <g>
+    <rect x="48" y="464" width="624" height="76" rx="14" fill="#1b2330" stroke="#334154" stroke-width="2"/>
+    <text x="78" y="512" fill="#ffffff" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="700">Browser</text>
+    <path d="M623 502l13 13 13-13" fill="none" stroke="#9eacbd" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <rect x="48" y="558" width="624" height="76" rx="14" fill="#1b2330" stroke="#334154" stroke-width="2"/>
+    <text x="78" y="606" fill="#ffffff" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="700">Set as default browser</text>
+    <path d="M623 596l13 13 13-13" fill="none" stroke="#9eacbd" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <rect x="48" y="652" width="624" height="68" rx="14" fill="#1b2330" stroke="#334154" stroke-width="2"/>
+    <text x="78" y="695" fill="#9eacbd" font-family="DejaVu Sans, Arial, sans-serif" font-size="21">Settings</text>
+    <path d="M623 684l13 13 13-13" fill="none" stroke="#718197" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Informational note -->
+  <g fill="#9eacbd" font-family="DejaVu Sans, Arial, sans-serif" font-size="17">
+    <text x="48" y="785">This app can act as your home app and receive web links.</text>
+    <text x="48" y="814">Choose “Set as default browser” to select it in Android</text>
+    <text x="48" y="843">system settings.</text>
+  </g>
+
+  <!-- Bottom navigation gesture area -->
+  <rect x="286" y="1227" width="148" height="6" rx="3" fill="#718197"/>
+</svg>

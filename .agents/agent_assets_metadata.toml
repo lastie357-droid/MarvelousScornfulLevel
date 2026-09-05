@@ -14,3 +14,17 @@ mtime_ms = 1788623265762
 storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:233faa3d-5f83-4967-9e7f-6a6f6789eacc/8ebe5878-9243-4502-957c-ad4e50c0734f/555ccbed-dbd0-4582-aa89-29e4255711ff"
 storage_version_token = "1788623283338645"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "UJYc98ZFcV9Cbp0H73V9M"
+uri = "file://screenshots/master-app-home-mockup.png"
+type = "image"
+title = "Master App home screen drawing"
+description = "Screenshot-style drawing based on the current master_home.xml layout and app colors."
+logical_id = "ab2026ea-8e9d-4e3d-a2b8-b996e746582d"
+content_hash = "sha256:14644944b1d325494a66b37421e51a2471196a11d3c8d0d088fc5f2711080935"
+size = 104118
+mtime_ms = 1788623516070
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:233faa3d-5f83-4967-9e7f-6a6f6789eacc/ab2026ea-8e9d-4e3d-a2b8-b996e746582d/ff4f2b19-ca6a-41c8-86d4-512353cf5e79"
+storage_version_token = "1788623523657714"
+content_type = "image/png"
