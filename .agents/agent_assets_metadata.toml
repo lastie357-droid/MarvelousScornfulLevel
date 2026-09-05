@@ -5,14 +5,14 @@ generated = []
 id = "-twf3vquflzuKpQ7Lbybp"
 uri = "file://Apktool-android/apktool/build/outputs/apk/debug/apktool-debug.apk"
 type = "unspecified"
-title = "Master App enhanced browser APK"
-description = "Debug APK built successfully with JavaScript/WebView enhancements, WebRTC camera and microphone permissions, file upload support, popup tabs, and an in-app ad/tracker blocker."
+title = "Master App with internal file picker"
+description = "Debug APK built successfully with an in-app directory picker for website uploads. File selection stays inside Master App and supports MIME-filtered single or multiple selection."
 logical_id = "8ebe5878-9243-4502-957c-ad4e50c0734f"
-content_hash = "sha256:50741fff05f2d9ff97d3c6db653c3d9be2d4073c8e904ee41416da4547fa21c1"
-size = 8334404
-mtime_ms = 1788624117930
-storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:233faa3d-5f83-4967-9e7f-6a6f6789eacc/8ebe5878-9243-4502-957c-ad4e50c0734f/f04d503b-a0c8-4a84-be5d-2e1d1f9595f5"
-storage_version_token = "1788624137457182"
+content_hash = "sha256:da5bdf43dd01dc9d421dee31803ac29d17987a97403dd738cb79c2cce383f51b"
+size = 11830392
+mtime_ms = 1788624472245
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:233faa3d-5f83-4967-9e7f-6a6f6789eacc/8ebe5878-9243-4502-957c-ad4e50c0734f/713cb07b-25de-491a-a7ef-63a24c608fb6"
+storage_version_token = "1788624486381959"
 content_type = "application/octet-stream"
 
 [[outputs]]

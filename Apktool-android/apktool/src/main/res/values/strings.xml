@@ -41,6 +41,9 @@
     <string name="browser_microphone">microphone</string>
     <string name="browser_unknown_site">this website</string>
     <string name="browser_file_picker_unavailable">The file picker could not be opened.</string>
+    <string name="browser_file_picker_title">Choose a file</string>
+    <string name="browser_file_picker_up">Up</string>
+    <string name="browser_file_picker_select">Select</string>
     <string name="allow">Allow</string>
     <string name="deny">Deny</string>
     <string name="browser_no_history">No browsing history yet.</string>

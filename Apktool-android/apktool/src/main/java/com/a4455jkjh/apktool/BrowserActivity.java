@@ -3,6 +3,7 @@ package com.a4455jkjh.apktool;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -17,6 +18,7 @@ import android.provider.Settings;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
@@ -30,11 +32,19 @@ import android.webkit.WebStorage;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.webkit.URLUtil;
+import android.webkit.MimeTypeMap;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
@@ -56,7 +66,7 @@ public class BrowserActivity extends ThemedActivity {
     private static final String AUTOFILL_ONBOARDING_KEY = "autofill_onboarding_shown";
     private static final String AD_BLOCKING_KEY = "ad_blocking_enabled";
     private static final int WEB_PERMISSION_REQUEST_CODE = 701;
-    private static final int FILE_CHOOSER_REQUEST_CODE = 702;
+    private static final int STORAGE_PERMISSION_REQUEST_CODE = 702;
     private static final int MAX_HISTORY = 100;
     private static final int MAX_DOWNLOADS = 50;
 
@@ -67,6 +77,14 @@ public class BrowserActivity extends ThemedActivity {
     private PermissionRequest pendingPermissionRequest;
     private String[] pendingPermissionResources;
     private ValueCallback<Uri[]> pendingFileCallback;
+    private WebChromeClient.FileChooserParams pendingFileChooserParams;
+    private Dialog filePickerDialog;
+    private File filePickerDirectory;
+    private ArrayList<File> filePickerEntries = new ArrayList<File>();
+    private HashSet<File> selectedFiles = new HashSet<File>();
+    private ListView filePickerList;
+    private TextView filePickerPath;
+    private TextView filePickerSelect;
 
     private static class BrowserTab {
         private WebView webView;
@@ -437,19 +455,229 @@ public class BrowserActivity extends ThemedActivity {
             pendingFileCallback.onReceiveValue(null);
         }
         pendingFileCallback = callback;
-        try {
-            Intent intent = params.createIntent();
-            intent.addCategory(Intent.CATEGORY_OPENABLE);
-            if (params.getMode() == WebChromeClient.FileChooserParams.MODE_OPEN_MULTIPLE) {
-                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        pendingFileChooserParams = params;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                && checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[] {Manifest.permission.READ_EXTERNAL_STORAGE},
+                    STORAGE_PERMISSION_REQUEST_CODE);
+            return;
+        }
+        showInternalFilePicker();
+    }
+
+    private void showInternalFilePicker() {
+        filePickerDirectory = initialFilePickerDirectory();
+        selectedFiles.clear();
+
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setPadding(24, 16, 24, 12);
+
+        filePickerPath = new TextView(this);
+        filePickerPath.setTextSize(13);
+        root.addView(filePickerPath, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        filePickerList = new ListView(this);
+        boolean multiple = pendingFileChooserParams != null
+                && pendingFileChooserParams.getMode()
+                == WebChromeClient.FileChooserParams.MODE_OPEN_MULTIPLE;
+        filePickerList.setChoiceMode(multiple
+                ? ListView.CHOICE_MODE_MULTIPLE
+                : ListView.CHOICE_MODE_SINGLE);
+        root.addView(filePickerList, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
+
+        LinearLayout actions = new LinearLayout(this);
+        actions.setOrientation(LinearLayout.HORIZONTAL);
+
+        Button up = new Button(this);
+        up.setText(R.string.browser_file_picker_up);
+        up.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (filePickerDirectory != null && filePickerDirectory.getParentFile() != null) {
+                    loadFilePickerDirectory(filePickerDirectory.getParentFile());
+                }
             }
-            startActivityForResult(intent, FILE_CHOOSER_REQUEST_CODE);
-        } catch (Exception exception) {
-            pendingFileCallback = null;
-            callback.onReceiveValue(null);
+        });
+        actions.addView(up, new LinearLayout.LayoutParams(0,
+                ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+
+        Button cancel = new Button(this);
+        cancel.setText(R.string.cancel);
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finishFileSelection(false);
+            }
+        });
+        actions.addView(cancel, new LinearLayout.LayoutParams(0,
+                ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+
+        filePickerSelect = new Button(this);
+        filePickerSelect.setText(R.string.browser_file_picker_select);
+        filePickerSelect.setEnabled(false);
+        filePickerSelect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finishFileSelection(true);
+            }
+        });
+        actions.addView(filePickerSelect, new LinearLayout.LayoutParams(0,
+                ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        root.addView(actions, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        filePickerList.setOnItemClickListener(new android.widget.AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(android.widget.AdapterView<?> parent, View view,
+                                    int position, long id) {
+                if (position < 0 || position >= filePickerEntries.size()) {
+                    return;
+                }
+                File selected = filePickerEntries.get(position);
+                if (selected.isDirectory()) {
+                    loadFilePickerDirectory(selected);
+                    return;
+                }
+                boolean multipleSelection = pendingFileChooserParams != null
+                        && pendingFileChooserParams.getMode()
+                        == WebChromeClient.FileChooserParams.MODE_OPEN_MULTIPLE;
+                if (multipleSelection) {
+                    if (filePickerList.isItemChecked(position)) {
+                        selectedFiles.add(selected);
+                    } else {
+                        selectedFiles.remove(selected);
+                    }
+                } else {
+                    selectedFiles.clear();
+                    selectedFiles.add(selected);
+                }
+                filePickerSelect.setEnabled(!selectedFiles.isEmpty());
+            }
+        });
+
+        filePickerDialog = new Dialog(this);
+        filePickerDialog.setTitle(R.string.browser_file_picker_title);
+        filePickerDialog.setContentView(root);
+        WindowManager.LayoutParams windowParams = new WindowManager.LayoutParams();
+        windowParams.copyFrom(filePickerDialog.getWindow().getAttributes());
+        windowParams.width = WindowManager.LayoutParams.MATCH_PARENT;
+        windowParams.height = WindowManager.LayoutParams.MATCH_PARENT;
+        filePickerDialog.show();
+        filePickerDialog.getWindow().setAttributes(windowParams);
+        loadFilePickerDirectory(filePickerDirectory);
+    }
+
+    private File initialFilePickerDirectory() {
+        File sharedStorage = Environment.getExternalStorageDirectory();
+        if (sharedStorage.exists() && sharedStorage.canRead()) {
+            return sharedStorage;
+        }
+        return getFilesDir();
+    }
+
+    private void loadFilePickerDirectory(File directory) {
+        if (directory == null || !directory.exists() || !directory.isDirectory()
+                || !directory.canRead()) {
             Toast.makeText(this, R.string.browser_file_picker_unavailable,
                     Toast.LENGTH_SHORT).show();
+            return;
         }
+        filePickerDirectory = directory;
+        filePickerPath.setText(directory.getAbsolutePath());
+        filePickerEntries.clear();
+        File[] children = directory.listFiles();
+        if (children != null) {
+            for (File child : children) {
+                if (child.canRead() && (child.isDirectory() || acceptsFile(child))) {
+                    filePickerEntries.add(child);
+                }
+            }
+        }
+        Collections.sort(filePickerEntries, new Comparator<File>() {
+            @Override
+            public int compare(File left, File right) {
+                if (left.isDirectory() != right.isDirectory()) {
+                    return left.isDirectory() ? -1 : 1;
+                }
+                return left.getName().compareToIgnoreCase(right.getName());
+            }
+        });
+        ArrayList<String> labels = new ArrayList<String>();
+        for (File child : filePickerEntries) {
+            labels.add((child.isDirectory() ? "📁 " : "") + child.getName());
+        }
+        filePickerList.setAdapter(new android.widget.ArrayAdapter<String>(
+                this, android.R.layout.simple_list_item_multiple_choice, labels));
+        selectedFiles.clear();
+        filePickerSelect.setEnabled(false);
+    }
+
+    private boolean acceptsFile(File file) {
+        if (pendingFileChooserParams == null) {
+            return true;
+        }
+        String[] acceptTypes = pendingFileChooserParams.getAcceptTypes();
+        if (acceptTypes == null || acceptTypes.length == 0) {
+            return true;
+        }
+        String extension = "";
+        int extensionStart = file.getName().lastIndexOf('.');
+        if (extensionStart >= 0) {
+            extension = file.getName().substring(extensionStart).toLowerCase(Locale.US);
+        }
+        String mime = extension.length() == 0 ? null
+                : MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.substring(1));
+        for (String rawType : acceptTypes) {
+            if (rawType == null) {
+                continue;
+            }
+            for (String rawPart : rawType.split(",")) {
+                String type = rawPart.trim().toLowerCase(Locale.US);
+                if (type.length() == 0 || "*/*".equals(type)) {
+                    return true;
+                }
+                if (type.startsWith(".") && type.equals(extension)) {
+                    return true;
+                }
+                if (mime != null && type.endsWith("/*")
+                        && mime.startsWith(type.substring(0, type.length() - 1))) {
+                    return true;
+                }
+                if (mime != null && type.equals(mime.toLowerCase(Locale.US))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private void finishFileSelection(boolean accepted) {
+        if (filePickerDialog != null) {
+            filePickerDialog.dismiss();
+            filePickerDialog = null;
+        }
+        ValueCallback<Uri[]> callback = pendingFileCallback;
+        pendingFileCallback = null;
+        pendingFileChooserParams = null;
+        if (callback == null) {
+            return;
+        }
+        if (!accepted || selectedFiles.isEmpty()) {
+            callback.onReceiveValue(null);
+            return;
+        }
+        ArrayList<Uri> selectedUris = new ArrayList<Uri>();
+        for (File entry : filePickerEntries) {
+            if (selectedFiles.contains(entry)) {
+                selectedUris.add(Uri.fromFile(entry));
+            }
+        }
+        callback.onReceiveValue(selectedUris.toArray(new Uri[selectedUris.size()]));
+        selectedFiles.clear();
     }
 
     /**
@@ -802,6 +1030,18 @@ public class BrowserActivity extends ThemedActivity {
     public void onRequestPermissionsResult(
             int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == STORAGE_PERMISSION_REQUEST_CODE) {
+            boolean granted = grantResults.length > 0;
+            for (int result : grantResults) {
+                granted &= result == PackageManager.PERMISSION_GRANTED;
+            }
+            if (granted) {
+                showInternalFilePicker();
+            } else {
+                finishFileSelection(false);
+            }
+            return;
+        }
         if (requestCode != WEB_PERMISSION_REQUEST_CODE) {
             return;
         }
@@ -821,21 +1061,6 @@ public class BrowserActivity extends ThemedActivity {
         } else {
             request.deny();
         }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode != FILE_CHOOSER_REQUEST_CODE || pendingFileCallback == null) {
-            return;
-        }
-        ValueCallback<Uri[]> callback = pendingFileCallback;
-        pendingFileCallback = null;
-        Uri[] results = null;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            results = WebChromeClient.FileChooserParams.parseResult(resultCode, data);
-        }
-        callback.onReceiveValue(results);
     }
 
     private ArrayList<BrowserRecord> readRecords(String key) {
