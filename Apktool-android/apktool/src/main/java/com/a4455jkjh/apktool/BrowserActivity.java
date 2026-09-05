@@ -4,13 +4,11 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.app.Dialog;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -54,14 +52,17 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import org.mozilla.geckoview.AllowOrDeny;
+import org.mozilla.geckoview.GeckoResult;
+import org.mozilla.geckoview.GeckoSession;
+import org.mozilla.geckoview.GeckoView;
 
 /**
  * A self-contained browser surface. Ordinary pages stay inside the app's
- * WebView. Identity-provider sign-in uses a Custom Tab so providers can see a
- * real browser surface without making the whole browser leave the app.
+ * GeckoView. Master App owns the browser engine, profile, tabs, history,
+ * downloads, permissions and navigation without launching another browser.
  *
- * Android WebView uses the Chromium engine supplied by the device. This class
- * owns the browser profile, tabs, history and download records for Master App.
+ * GeckoView embeds Mozilla's browser engine directly in the Master App APK.
  */
 public class BrowserActivity extends ThemedActivity {
     private static final String HOME_URL = "https://www.google.com";
@@ -75,18 +76,6 @@ public class BrowserActivity extends ThemedActivity {
     private static final String AD_BLOCKING_KEY = "ad_blocking_enabled";
     private static final int WEB_PERMISSION_REQUEST_CODE = 701;
     private static final int STORAGE_PERMISSION_REQUEST_CODE = 702;
-    private static final String CUSTOM_TAB_TITLE_VISIBILITY =
-            "android.support.customtabs.extra.TITLE_VISIBILITY";
-    private static final String[] SECURE_BROWSER_PACKAGES = new String[] {
-            "com.android.chrome",
-            "org.mozilla.firefox",
-            "com.brave.browser",
-            "com.microsoft.emmx",
-            "com.sec.android.app.sbrowser",
-            "com.opera.browser",
-            "com.vivaldi.browser",
-            "com.duckduckgo.mobile.android"
-    };
     private static final int MAX_HISTORY = 100;
     private static final int MAX_DOWNLOADS = 50;
 
@@ -107,9 +96,11 @@ public class BrowserActivity extends ThemedActivity {
     private TextView filePickerSelect;
 
     private static class BrowserTab {
-        private WebView webView;
+        private GeckoView webView;
+        private GeckoSession session;
         private String title = "";
         private String url = "";
+        private boolean canGoBack;
     }
 
     private static class BrowserRecord {
@@ -146,7 +137,7 @@ public class BrowserActivity extends ThemedActivity {
         findViewById(R.id.browser_home).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                getCurrentWebView().loadUrl(HOME_URL);
+                getCurrentSession().loadUri(HOME_URL);
             }
         });
         findViewById(R.id.browser_tab_count).setOnClickListener(new View.OnClickListener() {
@@ -208,184 +199,82 @@ public class BrowserActivity extends ThemedActivity {
 
     private BrowserTab createTab(String initialUrl) {
         final BrowserTab tab = new BrowserTab();
-        tab.webView = buildWebView(tab);
+        tab.session = new GeckoSession();
+        tab.webView = buildGeckoView(tab);
         tabs.add(tab);
         webViewContainer.addView(tab.webView, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
         switchToTab(tabs.size() - 1);
-        tab.webView.loadUrl(initialUrl == null ? HOME_URL : initialUrl);
+        tab.session.open(ApktoolApplication.getGeckoRuntime());
+        tab.webView.setSession(tab.session);
+        tab.session.loadUri(initialUrl == null ? HOME_URL : initialUrl);
         return tab;
     }
 
-    private WebView buildWebView(final BrowserTab tab) {
-        WebView webView = new WebView(this);
-        WebSettings settings = webView.getSettings();
-        settings.setJavaScriptEnabled(true);
-        settings.setDomStorageEnabled(true);
-        settings.setSupportZoom(true);
-        settings.setBuiltInZoomControls(true);
-        settings.setDisplayZoomControls(false);
-        settings.setLoadsImagesAutomatically(true);
-        settings.setJavaScriptCanOpenWindowsAutomatically(false);
-        settings.setDatabaseEnabled(true);
-        settings.setAllowContentAccess(true);
-        settings.setAllowFileAccess(true);
-        settings.setMediaPlaybackRequiresUserGesture(false);
-        settings.setSupportMultipleWindows(true);
-        settings.setUseWideViewPort(true);
-        settings.setLoadWithOverviewMode(true);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            settings.setSafeBrowsingEnabled(true);
-        }
-        applyBrowserSettings(settings);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            settings.setAllowFileAccessFromFileURLs(false);
-            settings.setAllowUniversalAccessFromFileURLs(false);
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // Let the device's configured password provider, such as Google
-            // Password Manager, offer credentials to login forms in this WebView.
-            // Master App never reads or stores those credentials.
-            webView.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_YES);
-        }
-
-        CookieManager cookies = CookieManager.getInstance();
-        cookies.setAcceptCookie(true);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            cookies.setAcceptThirdPartyCookies(webView, true);
-        }
-
-        webView.setWebViewClient(new WebViewClient() {
+    private GeckoView buildGeckoView(final BrowserTab tab) {
+        GeckoView browserView = new GeckoView(this);
+        tab.session.setNavigationDelegate(new GeckoSession.NavigationDelegate() {
             @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                loadLinkInsideApp(view, url);
-                return true;
-            }
-
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                if (request.isForMainFrame()) {
-                    loadLinkInsideApp(view, request.getUrl().toString());
-                    return true;
+            public GeckoResult<AllowOrDeny> onLoadRequest(
+                    GeckoSession session, GeckoSession.NavigationDelegate.LoadRequest request) {
+                if (request.uri == null || isWebUrl(request.uri)
+                        || request.uri.startsWith("file://")) {
+                    return null;
                 }
-                return false;
+                loadLinkInsideApp(tab, request.uri);
+                return GeckoResult.fromValue(AllowOrDeny.DENY);
             }
 
             @Override
-            public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
-                if (isAdBlockingEnabled() && BrowserAdBlocker.shouldBlock(url)) {
-                    return emptyBlockedResponse();
-                }
-                return super.shouldInterceptRequest(view, url);
+            public GeckoResult<GeckoSession> onNewSession(
+                    GeckoSession session, String uri) {
+                BrowserTab newTab = createTab(uri);
+                return GeckoResult.fromValue(newTab.session);
             }
 
             @Override
-            public WebResourceResponse shouldInterceptRequest(
-                    WebView view, WebResourceRequest request) {
-                if (!request.isForMainFrame()
-                        && isAdBlockingEnabled()
-                        && BrowserAdBlocker.shouldBlock(request.getUrl().toString())) {
-                    return emptyBlockedResponse();
-                }
-                return super.shouldInterceptRequest(view, request);
-            }
-
-            @Override
-            public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                super.onPageStarted(view, url, favicon);
-                tab.url = url;
+            public void onLocationChange(GeckoSession session, String url,
+                    List<GeckoSession.PermissionDelegate.ContentPermission> permissions,
+                    Boolean hasUserGesture) {
+                tab.url = url == null ? "" : url;
                 updateCurrentChrome(tab);
             }
 
             @Override
-            public void onPageFinished(WebView view, String url) {
-                super.onPageFinished(view, url);
-                tab.url = url;
-                improvePasswordFieldAutofill(view);
+            public void onCanGoBack(GeckoSession session, boolean canGoBack) {
+                tab.canGoBack = canGoBack;
+            }
+        });
+        tab.session.setProgressDelegate(new GeckoSession.ProgressDelegate() {
+            @Override
+            public void onPageStart(GeckoSession session, String url) {
+                tab.url = url == null ? "" : url;
+                updateCurrentChrome(tab);
+            }
+
+            @Override
+            public void onPageStop(GeckoSession session, boolean success) {
                 rememberHistory(tab);
                 updateCurrentChrome(tab);
             }
         });
-        webView.setWebChromeClient(new WebChromeClient() {
+        tab.session.setContentDelegate(new GeckoSession.ContentDelegate() {
             @Override
-            public void onReceivedTitle(WebView view, String title) {
-                super.onReceivedTitle(view, title);
+            public void onTitleChange(GeckoSession session, String title) {
                 tab.title = title == null ? "" : title;
                 updateCurrentChrome(tab);
             }
 
             @Override
-            public void onPermissionRequest(final PermissionRequest request) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        handleWebPermissionRequest(request);
-                    }
-                });
-            }
-
-            @Override
-            public boolean onShowFileChooser(
-                    WebView webView, ValueCallback<Uri[]> filePathCallback,
-                    FileChooserParams fileChooserParams) {
-                openFileChooser(filePathCallback, fileChooserParams);
-                return true;
-            }
-
-            @Override
-            public boolean onCreateWindow(
-                    WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
-                BrowserTab newTab = createTab(null);
-                WebView.WebViewTransport transport =
-                        (WebView.WebViewTransport) resultMsg.obj;
-                transport.setWebView(newTab.webView);
-                resultMsg.sendToTarget();
-                return true;
+            public void onCloseRequest(GeckoSession session) {
+                int index = tabs.indexOf(tab);
+                if (index >= 0) {
+                    removeTab(index);
+                }
             }
         });
-        webView.setDownloadListener(new DownloadListener() {
-            @Override
-            public void onDownloadStart(String url, String userAgent, String contentDisposition,
-                                        String mimetype, long contentLength) {
-                startDownload(url, userAgent, contentDisposition, mimetype);
-            }
-        });
-        return webView;
-    }
-
-    private void applyBrowserSettings(WebSettings settings) {
-        boolean desktop = getSharedPreferences(PREFS, MODE_PRIVATE)
-                .getBoolean("browser_desktop_mode", true);
-        settings.setUserAgentString(desktop ? getDesktopUserAgent() : null);
-    }
-
-    private String getDesktopUserAgent() {
-        String userAgent = WebSettings.getDefaultUserAgent(this);
-        // Keep the WebView/Chromium version supplied by the device instead of
-        // pretending to be an unrelated, hard-coded Chrome release.
-        userAgent = userAgent.replace("; wv", "");
-        userAgent = userAgent.replace("Version/4.0 ", "");
-        return userAgent.replace(" Mobile", "");
-    }
-
-    private void improvePasswordFieldAutofill(final WebView webView) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            return;
-        }
-        // WebView exposes the page's autocomplete metadata to Android Autofill.
-        // Adding the standard hints makes password providers recognize fields
-        // immediately without Master App ever seeing or storing a password.
-        webView.evaluateJavascript(
-                "(function(){"
-                        + "var p=document.querySelectorAll('input[type=password]');"
-                        + "for(var i=0;i<p.length;i++){p[i].setAttribute('autocomplete','current-password');"
-                        + "var f=p[i].form;if(f){var u=f.querySelector('input:not([type=password])');"
-                        + "if(u&&!u.getAttribute('autocomplete'))u.setAttribute('autocomplete','username');}}"
-                        + "})();", null);
+        return browserView;
     }
 
     private void restoreTabs(String incomingUrl) {
@@ -420,10 +309,7 @@ public class BrowserActivity extends ThemedActivity {
     private void saveTabs() {
         JSONArray savedTabs = new JSONArray();
         for (BrowserTab tab : tabs) {
-            String url = tab.webView.getUrl();
-            if (url == null || url.length() == 0) {
-                url = tab.url;
-            }
+            String url = tab.url;
             if (url != null && url.length() > 0) {
                 savedTabs.put(url);
             }
@@ -769,20 +655,16 @@ public class BrowserActivity extends ThemedActivity {
     }
 
     /**
-     * Keep ordinary navigation in Master App. Identity-provider sign-in is the
-     * exception: Google and similar providers reject embedded WebViews, so the
-     * sign-in page is opened in a system browser Custom Tab.
+     * Resolve browser links without leaving Master App. GeckoView handles
+     * identity-provider pages in the embedded engine instead of handing them
+     * to another installed application.
      */
-    private void loadLinkInsideApp(WebView view, String url) {
+    private void loadLinkInsideApp(BrowserTab tab, String url) {
         if (url == null || url.length() == 0) {
             return;
         }
-        if (isSecureSignInUrl(url)) {
-            openSecureSignIn(url);
-            return;
-        }
         if (isWebUrl(url) || url.startsWith("file://")) {
-            view.loadUrl(url);
+            tab.session.loadUri(url);
             return;
         }
         if (url.startsWith("mailto:")) {
@@ -791,7 +673,7 @@ public class BrowserActivity extends ThemedActivity {
             if (queryStart >= 0) {
                 address = address.substring(0, queryStart);
             }
-            view.loadUrl(GMAIL_URL + "/mail/u/0/?view=cm&to=" + Uri.encode(address));
+            tab.session.loadUri(GMAIL_URL + "/mail/u/0/?view=cm&to=" + Uri.encode(address));
             return;
         }
         if (url.startsWith("intent://")) {
@@ -799,102 +681,19 @@ public class BrowserActivity extends ThemedActivity {
                 Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
                 String fallback = intent.getStringExtra("browser_fallback_url");
                 if (isWebUrl(fallback)) {
-                    view.loadUrl(fallback);
+                    tab.session.loadUri(fallback);
                     return;
                 }
                 Uri data = intent.getData();
                 if (data != null && isWebUrl(data.toString())) {
-                    view.loadUrl(data.toString());
+                    tab.session.loadUri(data.toString());
                     return;
                 }
             } catch (Exception ignored) {
-                // The URL is intentionally blocked below when no web fallback exists.
+                // The URL is intentionally blocked when no web fallback exists.
             }
         }
-        try {
-            // Match normal browser behavior for supported external schemes
-            // such as tel:, geo:, and app-provided deep links.
-            Intent externalIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-            externalIntent.addCategory(Intent.CATEGORY_BROWSABLE);
-            startActivity(externalIntent);
-        } catch (Exception exception) {
-            Toast.makeText(this, R.string.browser_link_blocked, Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private boolean isSecureSignInUrl(String url) {
-        if (!isWebUrl(url)) {
-            return false;
-        }
-        Uri uri = Uri.parse(url);
-        String host = uri.getHost();
-        if (host == null) {
-            return false;
-        }
-        host = host.toLowerCase(Locale.US);
-        return host.equals("accounts.google.com")
-                || host.endsWith(".accounts.google.com")
-                || host.equals("login.microsoftonline.com")
-                || host.endsWith(".login.microsoftonline.com")
-                || host.equals("appleid.apple.com")
-                || host.equals("github.com") && uri.getPath() != null
-                && uri.getPath().startsWith("/login");
-    }
-
-    private void openSecureSignIn(String url) {
-        try {
-            // Custom Tabs is an Android intent contract supported by Chrome
-            // and other browsers. Use it directly so the app stays compatible
-            // with its existing Android 14 minimum SDK without bundling a
-            // browser engine or a helper library.
-            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-            browserIntent.addCategory(Intent.CATEGORY_BROWSABLE);
-            browserIntent.putExtra(CUSTOM_TAB_TITLE_VISIBILITY, 1);
-            PackageManager packageManager = getPackageManager();
-            for (String packageName : SECURE_BROWSER_PACKAGES) {
-                if (packageManager.getLaunchIntentForPackage(packageName) == null) {
-                    continue;
-                }
-                browserIntent.setPackage(packageName);
-                try {
-                    startActivity(browserIntent);
-                    return;
-                } catch (Exception ignored) {
-                    // Try the next installed browser package.
-                }
-            }
-
-            // Let Android show every eligible browser instead of resolving
-            // back to Master App, which is the device's default browser.
-            browserIntent.setPackage(null);
-            List<ResolveInfo> handlers = packageManager.queryIntentActivities(
-                    browserIntent, 0);
-            boolean hasExternalHandler = false;
-            for (ResolveInfo handler : handlers) {
-                if (handler.activityInfo != null
-                        && !getPackageName().equals(handler.activityInfo.packageName)) {
-                    hasExternalHandler = true;
-                    break;
-                }
-            }
-            if (hasExternalHandler) {
-                Intent chooser = Intent.createChooser(
-                        browserIntent, getString(R.string.browser_secure_sign_in));
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    chooser.putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS,
-                            new ComponentName[] {
-                                    new ComponentName(this, BrowserActivity.class)
-                            });
-                }
-                startActivity(chooser);
-                return;
-            }
-            Toast.makeText(this, R.string.browser_secure_sign_in_unavailable,
-                    Toast.LENGTH_LONG).show();
-        } catch (Exception exception) {
-            Toast.makeText(this, R.string.browser_secure_sign_in_unavailable,
-                    Toast.LENGTH_LONG).show();
-        }
+        Toast.makeText(this, R.string.browser_link_blocked, Toast.LENGTH_SHORT).show();
     }
 
     private boolean isWebUrl(String url) {
@@ -912,8 +711,8 @@ public class BrowserActivity extends ThemedActivity {
         updateCurrentChrome(tabs.get(currentTab));
     }
 
-    private WebView getCurrentWebView() {
-        return tabs.get(currentTab).webView;
+    private GeckoSession getCurrentSession() {
+        return tabs.get(currentTab).session;
     }
 
     private void updateCurrentChrome(BrowserTab tab) {
@@ -939,7 +738,7 @@ public class BrowserActivity extends ThemedActivity {
                 query = "https://" + query;
             }
         }
-        getCurrentWebView().loadUrl(query);
+        getCurrentSession().loadUri(query);
     }
 
     private void showTabs() {

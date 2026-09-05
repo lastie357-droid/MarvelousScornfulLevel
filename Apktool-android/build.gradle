@@ -12,5 +12,17 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        maven {
+            url 'https://maven.mozilla.org/maven2'
+        }
+    }
+}
+
+subprojects {
+    configurations.all {
+        // The imported project already ships these classes in its legacy APK
+        // tooling JARs. GeckoView brings newer transitive copies.
+        exclude group: 'com.google.guava', module: 'listenablefuture'
+        exclude group: 'org.jetbrains', module: 'annotations'
     }
 }
