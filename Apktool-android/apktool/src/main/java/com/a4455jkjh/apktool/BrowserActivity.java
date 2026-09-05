@@ -55,8 +55,9 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * A self-contained browser surface. Pages stay inside the app's WebView and
- * are never handed to an external browser application.
+ * A self-contained browser surface. Ordinary pages stay inside the app's
+ * WebView. Identity-provider sign-in uses a Custom Tab so providers can see a
+ * real browser surface without making the whole browser leave the app.
  *
  * Android WebView uses the Chromium engine supplied by the device. This class
  * owns the browser profile, tabs, history and download records for Master App.
@@ -73,6 +74,8 @@ public class BrowserActivity extends ThemedActivity {
     private static final String AD_BLOCKING_KEY = "ad_blocking_enabled";
     private static final int WEB_PERMISSION_REQUEST_CODE = 701;
     private static final int STORAGE_PERMISSION_REQUEST_CODE = 702;
+    private static final String CUSTOM_TAB_TITLE_VISIBILITY =
+            "android.support.customtabs.extra.TITLE_VISIBILITY";
     private static final int MAX_HISTORY = 100;
     private static final int MAX_DOWNLOADS = 50;
 
@@ -755,8 +758,9 @@ public class BrowserActivity extends ThemedActivity {
     }
 
     /**
-     * Keep navigation in Master App. In particular, never call ACTION_VIEW or
-     * another package for a web link, login redirect, mail link, or intent URL.
+     * Keep ordinary navigation in Master App. Identity-provider sign-in is the
+     * exception: Google and similar providers reject embedded WebViews, so the
+     * sign-in page is opened in a system browser Custom Tab.
      */
     private void loadLinkInsideApp(WebView view, String url) {
         if (url == null || url.length() == 0) {
@@ -796,7 +800,15 @@ public class BrowserActivity extends ThemedActivity {
                 // The URL is intentionally blocked below when no web fallback exists.
             }
         }
-        Toast.makeText(this, R.string.browser_link_blocked, Toast.LENGTH_SHORT).show();
+        try {
+            // Match normal browser behavior for supported external schemes
+            // such as tel:, geo:, and app-provided deep links.
+            Intent externalIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            externalIntent.addCategory(Intent.CATEGORY_BROWSABLE);
+            startActivity(externalIntent);
+        } catch (Exception exception) {
+            Toast.makeText(this, R.string.browser_link_blocked, Toast.LENGTH_SHORT).show();
+        }
     }
 
     private boolean isSecureSignInUrl(String url) {
@@ -820,7 +832,12 @@ public class BrowserActivity extends ThemedActivity {
 
     private void openSecureSignIn(String url) {
         try {
+            // Custom Tabs is an Android intent contract supported by Chrome
+            // and other browsers. Use it directly so the app stays compatible
+            // with its existing Android 14 minimum SDK without bundling a
+            // browser engine or a helper library.
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            browserIntent.putExtra(CUSTOM_TAB_TITLE_VISIBILITY, 1);
             List<ResolveInfo> handlers = getPackageManager().queryIntentActivities(
                     browserIntent, PackageManager.MATCH_DEFAULT_ONLY);
             ResolveInfo selected = null;
@@ -838,9 +855,32 @@ public class BrowserActivity extends ThemedActivity {
                 }
             }
             if (selected == null || selected.activityInfo == null) {
-                Toast.makeText(this, R.string.browser_secure_sign_in_unavailable,
-                        Toast.LENGTH_LONG).show();
-                return;
+                // Some browsers do not advertise Custom Tabs support. Try a
+                // normal browser intent before reporting that no browser is
+                // available.
+                browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                browserIntent.addCategory(Intent.CATEGORY_BROWSABLE);
+                handlers = getPackageManager().queryIntentActivities(
+                        browserIntent, PackageManager.MATCH_DEFAULT_ONLY);
+                selected = null;
+                for (ResolveInfo handler : handlers) {
+                    if (handler.activityInfo == null
+                            || getPackageName().equals(handler.activityInfo.packageName)) {
+                        continue;
+                    }
+                    if ("com.android.chrome".equals(handler.activityInfo.packageName)) {
+                        selected = handler;
+                        break;
+                    }
+                    if (selected == null) {
+                        selected = handler;
+                    }
+                }
+                if (selected == null || selected.activityInfo == null) {
+                    Toast.makeText(this, R.string.browser_secure_sign_in_unavailable,
+                            Toast.LENGTH_LONG).show();
+                    return;
+                }
             }
             browserIntent.setPackage(selected.activityInfo.packageName);
             startActivity(browserIntent);
