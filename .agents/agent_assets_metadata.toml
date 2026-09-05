@@ -5,14 +5,14 @@ generated = []
 id = "-twf3vquflzuKpQ7Lbybp"
 uri = "file://Apktool-android/apktool/build/outputs/apk/debug/apktool-debug.apk"
 type = "unspecified"
-title = "Master App with internal file picker"
-description = "Debug APK built successfully with an in-app directory picker for website uploads. File selection stays inside Master App and supports MIME-filtered single or multiple selection."
+title = "Master App debug APK"
+description = "Successfully built debug APK for Master App."
 logical_id = "8ebe5878-9243-4502-957c-ad4e50c0734f"
 content_hash = "sha256:da5bdf43dd01dc9d421dee31803ac29d17987a97403dd738cb79c2cce383f51b"
 size = 11830392
 mtime_ms = 1788624472245
-storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:233faa3d-5f83-4967-9e7f-6a6f6789eacc/8ebe5878-9243-4502-957c-ad4e50c0734f/713cb07b-25de-491a-a7ef-63a24c608fb6"
-storage_version_token = "1788624486381959"
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:233faa3d-5f83-4967-9e7f-6a6f6789eacc/8ebe5878-9243-4502-957c-ad4e50c0734f/b1761302-632e-4a21-88e6-1f608d212972"
+storage_version_token = "1788625332033162"
 content_type = "application/octet-stream"
 
 [[outputs]]
