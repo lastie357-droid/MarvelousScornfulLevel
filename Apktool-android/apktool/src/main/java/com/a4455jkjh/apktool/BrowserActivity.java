@@ -77,6 +77,16 @@ public class BrowserActivity extends ThemedActivity {
     private static final int STORAGE_PERMISSION_REQUEST_CODE = 702;
     private static final String CUSTOM_TAB_TITLE_VISIBILITY =
             "android.support.customtabs.extra.TITLE_VISIBILITY";
+    private static final String[] SECURE_BROWSER_PACKAGES = new String[] {
+            "com.android.chrome",
+            "org.mozilla.firefox",
+            "com.brave.browser",
+            "com.microsoft.emmx",
+            "com.sec.android.app.sbrowser",
+            "com.opera.browser",
+            "com.vivaldi.browser",
+            "com.duckduckgo.mobile.android"
+    };
     private static final int MAX_HISTORY = 100;
     private static final int MAX_DOWNLOADS = 50;
 
@@ -840,26 +850,34 @@ public class BrowserActivity extends ThemedActivity {
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
             browserIntent.addCategory(Intent.CATEGORY_BROWSABLE);
             browserIntent.putExtra(CUSTOM_TAB_TITLE_VISIBILITY, 1);
-            List<ResolveInfo> handlers = getPackageManager().queryIntentActivities(
-                    browserIntent, 0);
-            ResolveInfo selected = null;
-            for (ResolveInfo handler : handlers) {
-                if (handler.activityInfo == null
-                        || getPackageName().equals(handler.activityInfo.packageName)) {
+            PackageManager packageManager = getPackageManager();
+            for (String packageName : SECURE_BROWSER_PACKAGES) {
+                if (packageManager.getLaunchIntentForPackage(packageName) == null) {
                     continue;
                 }
-                if ("com.android.chrome".equals(handler.activityInfo.packageName)) {
-                    selected = handler;
-                    break;
-                }
-                if (selected == null) {
-                    selected = handler;
+                browserIntent.setPackage(packageName);
+                try {
+                    startActivity(browserIntent);
+                    return;
+                } catch (Exception ignored) {
+                    // Try the next installed browser package.
                 }
             }
-            if (selected == null || selected.activityInfo == null) {
-                // Let Android show every eligible browser instead of rejecting
-                // the request because a browser did not advertise itself as a
-                // default handler.
+
+            // Let Android show every eligible browser instead of resolving
+            // back to Master App, which is the device's default browser.
+            browserIntent.setPackage(null);
+            List<ResolveInfo> handlers = packageManager.queryIntentActivities(
+                    browserIntent, 0);
+            boolean hasExternalHandler = false;
+            for (ResolveInfo handler : handlers) {
+                if (handler.activityInfo != null
+                        && !getPackageName().equals(handler.activityInfo.packageName)) {
+                    hasExternalHandler = true;
+                    break;
+                }
+            }
+            if (hasExternalHandler) {
                 Intent chooser = Intent.createChooser(
                         browserIntent, getString(R.string.browser_secure_sign_in));
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -871,8 +889,8 @@ public class BrowserActivity extends ThemedActivity {
                 startActivity(chooser);
                 return;
             }
-            browserIntent.setPackage(selected.activityInfo.packageName);
-            startActivity(browserIntent);
+            Toast.makeText(this, R.string.browser_secure_sign_in_unavailable,
+                    Toast.LENGTH_LONG).show();
         } catch (Exception exception) {
             Toast.makeText(this, R.string.browser_secure_sign_in_unavailable,
                     Toast.LENGTH_LONG).show();
