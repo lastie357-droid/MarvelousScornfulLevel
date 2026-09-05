@@ -5,14 +5,14 @@ generated = []
 id = "-twf3vquflzuKpQ7Lbybp"
 uri = "file://Apktool-android/apktool/build/outputs/apk/debug/apktool-debug.apk"
 type = "unspecified"
-title = "Master App Android 16 APK"
-description = "Debug APK built with compileSdk 36 and targetSdk 36 using AGP 8.10.0 and Gradle 8.11.1."
+title = "Master App Apktool permissions update"
+description = "Android 16 debug APK with All files access onboarding, APK install permission onboarding, installed-app visibility, reliable file-list initialization, and safer missing-folder handling."
 logical_id = "8ebe5878-9243-4502-957c-ad4e50c0734f"
-content_hash = "sha256:16fae9cf219421c82ae9515e4ecda2c1a193b218d8db20718d6129ad65fae902"
-size = 8364132
-mtime_ms = 1788635455893
-storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:45a2fc1a-7344-442d-bce5-21ab4adf6497/8ebe5878-9243-4502-957c-ad4e50c0734f/747e42d3-3d71-46e1-b233-b7eb6adbbcb8"
-storage_version_token = "1788635466826714"
+content_hash = "sha256:7bdf0ebd814efbeb5d2d7f41d0723eebc90827a563fe1980fcd0c4fc08b6603d"
+size = 11834663
+mtime_ms = 1788639888980
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:45a2fc1a-7344-442d-bce5-21ab4adf6497/8ebe5878-9243-4502-957c-ad4e50c0734f/e8f9133d-ff2a-4616-b81c-7912cd1f3b49"
+storage_version_token = "1788639897939364"
 content_type = "application/octet-stream"
 
 [[outputs]]

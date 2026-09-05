@@ -107,16 +107,21 @@ public class FilesAdapter extends BaseAdapter implements AdapterView.OnItemClick
 		ok.setEnabled(false);
 	}
 	void refresh(File dir) {
+		if (dir == null || !dir.exists() || !dir.isDirectory() || !dir.canRead())
+			dir = rootDir;
 		curDir = dir;
 		BuildItem build = this.build;
 		if (build != null && !build.isSubDir(dir))
 			build = null;
 		path.setText(dir.getAbsolutePath());
 		items.clear();
-		for (File f:dir.listFiles(filter)) {
-			items.add(new FileItem(f));
-			if (f.isFile() && f.getName().equals("apktool.json"))
-				build = new BuildItem(dir);
+		File[] children = dir == null ? null : dir.listFiles(filter);
+		if (children != null) {
+			for (File f: children) {
+				items.add(new FileItem(f));
+				if (f.isFile() && f.getName().equals("apktool.json"))
+					build = new BuildItem(dir);
+			}
 		}
 		if (build != null)
 			items.add(build);

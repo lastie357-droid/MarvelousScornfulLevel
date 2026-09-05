@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
@@ -50,6 +51,7 @@ import java.util.HashSet;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -73,9 +75,6 @@ public class BrowserActivity extends ThemedActivity {
     private static final int STORAGE_PERMISSION_REQUEST_CODE = 702;
     private static final int MAX_HISTORY = 100;
     private static final int MAX_DOWNLOADS = 50;
-    private static final String DESKTOP_USER_AGENT =
-            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-                    + "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 
     private final ArrayList<BrowserTab> tabs = new ArrayList<BrowserTab>();
     private EditText addressBar;
@@ -222,6 +221,12 @@ public class BrowserActivity extends ThemedActivity {
         settings.setSupportMultipleWindows(true);
         settings.setUseWideViewPort(true);
         settings.setLoadWithOverviewMode(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            settings.setSafeBrowsingEnabled(true);
+        }
         applyBrowserSettings(settings);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             settings.setAllowFileAccessFromFileURLs(false);
@@ -341,7 +346,16 @@ public class BrowserActivity extends ThemedActivity {
     private void applyBrowserSettings(WebSettings settings) {
         boolean desktop = getSharedPreferences(PREFS, MODE_PRIVATE)
                 .getBoolean("browser_desktop_mode", true);
-        settings.setUserAgentString(desktop ? DESKTOP_USER_AGENT : null);
+        settings.setUserAgentString(desktop ? getDesktopUserAgent() : null);
+    }
+
+    private String getDesktopUserAgent() {
+        String userAgent = WebSettings.getDefaultUserAgent(this);
+        // Keep the WebView/Chromium version supplied by the device instead of
+        // pretending to be an unrelated, hard-coded Chrome release.
+        userAgent = userAgent.replace("; wv", "");
+        userAgent = userAgent.replace("Version/4.0 ", "");
+        return userAgent.replace(" Mobile", "");
     }
 
     private void improvePasswordFieldAutofill(final WebView webView) {
@@ -748,6 +762,10 @@ public class BrowserActivity extends ThemedActivity {
         if (url == null || url.length() == 0) {
             return;
         }
+        if (isSecureSignInUrl(url)) {
+            openSecureSignIn(url);
+            return;
+        }
         if (isWebUrl(url) || url.startsWith("file://")) {
             view.loadUrl(url);
             return;
@@ -779,6 +797,57 @@ public class BrowserActivity extends ThemedActivity {
             }
         }
         Toast.makeText(this, R.string.browser_link_blocked, Toast.LENGTH_SHORT).show();
+    }
+
+    private boolean isSecureSignInUrl(String url) {
+        if (!isWebUrl(url)) {
+            return false;
+        }
+        Uri uri = Uri.parse(url);
+        String host = uri.getHost();
+        if (host == null) {
+            return false;
+        }
+        host = host.toLowerCase(Locale.US);
+        return host.equals("accounts.google.com")
+                || host.endsWith(".accounts.google.com")
+                || host.equals("login.microsoftonline.com")
+                || host.endsWith(".login.microsoftonline.com")
+                || host.equals("appleid.apple.com")
+                || host.equals("github.com") && uri.getPath() != null
+                && uri.getPath().startsWith("/login");
+    }
+
+    private void openSecureSignIn(String url) {
+        try {
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            List<ResolveInfo> handlers = getPackageManager().queryIntentActivities(
+                    browserIntent, PackageManager.MATCH_DEFAULT_ONLY);
+            ResolveInfo selected = null;
+            for (ResolveInfo handler : handlers) {
+                if (handler.activityInfo == null
+                        || getPackageName().equals(handler.activityInfo.packageName)) {
+                    continue;
+                }
+                if ("com.android.chrome".equals(handler.activityInfo.packageName)) {
+                    selected = handler;
+                    break;
+                }
+                if (selected == null) {
+                    selected = handler;
+                }
+            }
+            if (selected == null || selected.activityInfo == null) {
+                Toast.makeText(this, R.string.browser_secure_sign_in_unavailable,
+                        Toast.LENGTH_LONG).show();
+                return;
+            }
+            browserIntent.setPackage(selected.activityInfo.packageName);
+            startActivity(browserIntent);
+        } catch (Exception exception) {
+            Toast.makeText(this, R.string.browser_secure_sign_in_unavailable,
+                    Toast.LENGTH_LONG).show();
+        }
     }
 
     private boolean isWebUrl(String url) {
@@ -1069,10 +1138,11 @@ public class BrowserActivity extends ThemedActivity {
         new AlertDialog.Builder(this)
                 .setTitle(R.string.browser_gmail)
                 .setMessage(R.string.browser_sign_in_note)
-                .setPositiveButton(R.string.browser_gmail, new DialogInterface.OnClickListener() {
+                .setPositiveButton(R.string.browser_secure_sign_in,
+                        new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        getCurrentWebView().loadUrl(GMAIL_URL);
+                        openSecureSignIn(GMAIL_URL);
                     }
                 })
                 .setNegativeButton(R.string.cancel, null)

@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager.widget.ViewPager;
 import com.a4455jkjh.apktool.ApktoolActivity;
+import com.a4455jkjh.apktool.ApktoolPermissions;
 import com.a4455jkjh.apktool.R;
 import com.a4455jkjh.apktool.fragment.files.ErrorTree;
 import com.a4455jkjh.apktool.fragment.files.FilesPagerAdapter;
@@ -19,6 +20,7 @@ public class FilesFragment extends Fragment {
 	private EditorFragment editor;
 	private ViewPager files_pager;
 	private FilesPagerAdapter adapter;
+	private boolean initialized;
 
 	public void setPage(int idx) {
 		files_pager.setCurrentItem(idx);
@@ -52,11 +54,11 @@ public class FilesFragment extends Fragment {
 		super.onActivityCreated(savedInstanceState);
 		adapter = new FilesPagerAdapter(getActivity());
 		files_pager.setAdapter(adapter);
-		if (Build.VERSION.SDK_INT < 23 ||
-			getActivity().checkSelfPermission(
-				Manifest.permission.WRITE_EXTERNAL_STORAGE) == 0)
+		if (ApktoolPermissions.hasFileAccess(getActivity()))
 			init(savedInstanceState);
-		else
+		else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+			ApktoolPermissions.openAllFilesAccessSettings(getActivity());
+		} else
 			requestPermissions(new String[]{
 								   Manifest.permission.WRITE_EXTERNAL_STORAGE},
 							   10);
@@ -65,11 +67,19 @@ public class FilesFragment extends Fragment {
 	@Override
 	public void onResume() {
 		super.onResume();
-		if (adapter != null) {
+		if (adapter != null && !initialized
+				&& ApktoolPermissions.hasFileAccess(getActivity())) {
+			initialized = true;
+			init(null);
+		} else if (adapter != null && initialized) {
 			adapter.refreshApplications();
 		}
 	}
 	private void init(Bundle savedInstanceState) {
+		if (initialized) {
+			return;
+		}
+		initialized = true;
 		adapter.init(savedInstanceState, this);
 		editor.init();
 		((ApktoolActivity)getActivity()).init();
@@ -86,6 +96,7 @@ public class FilesFragment extends Fragment {
 	@Override
 	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
 		if (requestCode == 10 && grantResults[0] == 0) {
+			initialized = false;
 			init(null);
 			return;
 		}

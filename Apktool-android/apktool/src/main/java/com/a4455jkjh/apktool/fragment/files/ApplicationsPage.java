@@ -137,7 +137,9 @@ public class ApplicationsPage {
 			if (normalizedQuery.length() > 0 && !searchable.contains(normalizedQuery)) {
 				continue;
 			}
-			if (pkg.applicationInfo.sourceDir.startsWith("/data/"))
+			String sourceDir = pkg.applicationInfo == null
+					? "" : pkg.applicationInfo.sourceDir;
+			if (sourceDir != null && sourceDir.startsWith("/data/"))
 				installedApps.addApp(pkg, mPackageManager);
 			else
 				systemApps.addApp(pkg, mPackageManager);

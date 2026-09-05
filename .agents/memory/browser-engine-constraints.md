@@ -14,3 +14,9 @@ The browser's website file-upload flow should remain inside Master App: use an i
 **Why:** The product requirement is that upload and drag/drop selection do not leave the browser surface, while WebView still needs a normal file callback.
 
 **How to apply:** Keep storage permission handling and the internal picker around WebChromeClient file chooser callbacks; preserve MIME/extension filtering and single/multiple selection.
+
+Identity providers may reject embedded WebViews even when their user-agent is changed to resemble Chrome. Secure account flows need a real browser surface; do not spoof a browser identity or force OAuth into the WebView.
+
+**Why:** Google and similar providers use embedded-browser detection beyond the user-agent, and spoofing creates a fragile or unsafe login path.
+
+**How to apply:** Keep ordinary pages in the system WebView, but route known identity-provider sign-in URLs to an installed browser while avoiding broad package visibility permissions.
