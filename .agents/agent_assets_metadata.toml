@@ -1,0 +1,16 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "-twf3vquflzuKpQ7Lbybp"
+uri = "file://Apktool-android/apktool/build/outputs/apk/debug/apktool-debug.apk"
+type = "unspecified"
+title = "Master App debug APK"
+description = "Built successfully with the new Gradle and Android SDK bootstrap. Install this debug APK on an Android device or emulator for testing."
+logical_id = "8ebe5878-9243-4502-957c-ad4e50c0734f"
+content_hash = "sha256:e8a64c10c06628c1a22c10bb13fa413f600bd746edd1969f1faef7b6aa7cefb1"
+size = 8318173
+mtime_ms = 1788622734914
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:233faa3d-5f83-4967-9e7f-6a6f6789eacc/8ebe5878-9243-4502-957c-ad4e50c0734f/4ba46ae1-d14a-4c8e-a111-01a36b78b83f"
+storage_version_token = "1788622761719615"
+content_type = "application/octet-stream"

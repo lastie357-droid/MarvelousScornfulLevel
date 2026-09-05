@@ -26,6 +26,10 @@ proguard/
 # Log Files
 *.log
 
+# Locally bootstrapped Android build tools
+.tools/
+.android-sdk/
+
 # Android Studio Navigation editor temp files
 .navigation/
 

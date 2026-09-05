@@ -9,7 +9,7 @@ import android.view.Menu;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.TextView;
-import com.a4455jkjh.apktool.MainActivity;
+import com.a4455jkjh.apktool.ApktoolActivity;
 import com.a4455jkjh.apktool.R;
 import com.a4455jkjh.apktool.util.PopupUtils;
 import com.a4455jkjh.apktool.util.Settings;
@@ -60,7 +60,7 @@ public class FilesPager implements View.OnClickListener {
 			case R.id.back:
 				if (adapter.goBack())
 					return;
-				((MainActivity)ctx).dismissFiles();
+((ApktoolActivity)ctx).dismissFiles();
 				break;
 			case R.id.path:
 				menu(p1);

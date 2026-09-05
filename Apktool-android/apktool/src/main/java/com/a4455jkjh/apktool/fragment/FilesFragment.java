@@ -9,7 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager.widget.ViewPager;
-import com.a4455jkjh.apktool.MainActivity;
+import com.a4455jkjh.apktool.ApktoolActivity;
 import com.a4455jkjh.apktool.R;
 import com.a4455jkjh.apktool.fragment.files.ErrorTree;
 import com.a4455jkjh.apktool.fragment.files.FilesPagerAdapter;
@@ -64,7 +64,7 @@ public class FilesFragment extends Fragment {
 	private void init(Bundle savedInstanceState) {
 		adapter.init(savedInstanceState, this);
 		editor.init();
-		((MainActivity)getActivity()).init();
+		((ApktoolActivity)getActivity()).init();
 	}
 	public void edit(File file) {
 		editor.open(file);

@@ -18,7 +18,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager.widget.ViewPager;
-import com.a4455jkjh.apktool.MainActivity;
+import com.a4455jkjh.apktool.ApktoolActivity;
 import com.a4455jkjh.apktool.R;
 import com.a4455jkjh.apktool.fragment.editor.EditorPagerAdapter;
 import com.a4455jkjh.apktool.fragment.editor.EditorTitleAdapter;
@@ -45,7 +45,7 @@ public class EditorFragment extends Fragment implements Editor.OnEditStateChange
 	public void init() {
 		if (EditorPagerAdapter.INSTANCE.getCount() == 0) {
 			empty.setVisibility(View.VISIBLE);
-			((MainActivity)getActivity()).showFiles(0);
+((ApktoolActivity)getActivity()).showFiles(0);
 		} else {
 			empty.setVisibility(View.GONE);
 		}
@@ -148,7 +148,7 @@ public class EditorFragment extends Fragment implements Editor.OnEditStateChange
 		int idx = EditorPagerAdapter.INSTANCE.open(r, data);
 		setCurrentItem(idx, false);
 		empty.setVisibility(View.GONE);
-		((MainActivity)getActivity()).dismissFiles();
+((ApktoolActivity)getActivity()).dismissFiles();
 	}
 
 	public void open(File file) {
@@ -210,7 +210,7 @@ public class EditorFragment extends Fragment implements Editor.OnEditStateChange
 					});
 				break;
 			case R.id.errors:
-				((MainActivity)getActivity()).showFiles(2);
+((ApktoolActivity)getActivity()).showFiles(2);
 				break;
 		}
 	}
