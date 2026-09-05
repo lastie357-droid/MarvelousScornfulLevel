@@ -2,12 +2,12 @@ apply plugin: 'com.android.application'
 
 android {
     namespace 'com.a4455jkjh.apktool'
-    compileSdk 35
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.a4455jkjh.apktool"
         minSdkVersion 14
-        targetSdkVersion 28
+        targetSdkVersion 36
         versionCode 1903280240
         versionName "2.4.0-190328"
     }

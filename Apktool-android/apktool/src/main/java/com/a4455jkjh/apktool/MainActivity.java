@@ -23,6 +23,12 @@ public class MainActivity extends ThemedActivity {
                 startActivity(new Intent(MainActivity.this, BrowserActivity.class));
             }
         });
+        findViewById(R.id.open_app_container).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this, AppContainerActivity.class));
+            }
+        });
         findViewById(R.id.set_default_browser).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
