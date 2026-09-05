@@ -79,18 +79,48 @@
             android:textColor="@color/master_muted" />
 
         <Button
-            android:id="@+id/browser_default"
+            android:id="@+id/browser_gmail"
             android:layout_width="0dp"
             android:layout_height="38dp"
             android:layout_weight="1"
             android:layout_marginLeft="8dp"
             android:background="@drawable/browser_button"
-            android:text="@string/set_default_browser_short"
+            android:text="@string/browser_gmail"
+            android:textColor="@color/master_muted" />
+
+        <Button
+            android:id="@+id/browser_tab_count"
+            android:layout_width="0dp"
+            android:layout_height="38dp"
+            android:layout_weight="1"
+            android:layout_marginLeft="8dp"
+            android:background="@drawable/browser_button"
+            android:text="@string/browser_tabs"
+            android:textColor="@color/master_muted" />
+
+        <Button
+            android:id="@+id/browser_new_tab"
+            android:layout_width="0dp"
+            android:layout_height="38dp"
+            android:layout_weight="1"
+            android:layout_marginLeft="8dp"
+            android:background="@drawable/browser_button"
+            android:text="@string/browser_new_tab"
+            android:textColor="@color/master_muted" />
+
+        <Button
+            android:id="@+id/browser_menu"
+            android:layout_width="0dp"
+            android:layout_height="38dp"
+            android:layout_weight="1"
+            android:layout_marginLeft="8dp"
+            android:background="@drawable/browser_button"
+            android:text="@string/browser_menu"
             android:textColor="@color/master_muted" />
     </LinearLayout>
 
-    <WebView
-        android:id="@+id/browser_webview"
+    <FrameLayout
+        android:id="@+id/browser_webview_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
