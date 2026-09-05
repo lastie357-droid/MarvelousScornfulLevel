@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary_dark_material">#ff03a9f4</color>
+    <color name="primary_dark_material_light">#ff29b6f6</color>
+    <color name="primary_material">#ff222222</color>
+    <color name="primary_material_light">#ffffffff</color>
+    <color name="accent_material">#ff03a9f4</color>
+    <color name="accent_material_light">#ff29b6f6</color>
+    <color name="app_background">#ff000000</color>
+    <color name="app_background_light">#ffffffff</color>
+    <color name="master_background">#ff10151f</color>
+    <color name="master_card">#ff1b2330</color>
+    <color name="master_card_pressed">#ff293447</color>
+    <color name="master_border">#ff334154</color>
+    <color name="master_text">#ffffffff</color>
+    <color name="master_muted">#ff9eacbd</color>
+    <color name="master_accent">#ff29b6f6</color>
+    <color name="master_button_text">#ff08111d</color>
+    <color name="master_button_pressed">#ff60c9f8</color>
+    <color name="browser_toolbar">#ff151d29</color>
+</resources>

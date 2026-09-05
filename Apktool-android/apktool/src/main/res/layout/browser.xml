@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/master_background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="8dp"
+        android:background="@color/browser_toolbar">
+
+        <Button
+            android:id="@+id/browser_back"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/browser_button"
+            android:text="‹"
+            android:textColor="@color/master_text"
+            android:textSize="28sp" />
+
+        <Button
+            android:id="@+id/browser_forward"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginLeft="4dp"
+            android:background="@drawable/browser_button"
+            android:text="›"
+            android:textColor="@color/master_text"
+            android:textSize="28sp" />
+
+        <EditText
+            android:id="@+id/browser_address"
+            android:layout_width="0dp"
+            android:layout_height="42dp"
+            android:layout_weight="1"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:background="@drawable/browser_address"
+            android:hint="@string/browser_address_hint"
+            android:imeOptions="actionGo"
+            android:inputType="textUri"
+            android:paddingLeft="14dp"
+            android:paddingRight="14dp"
+            android:singleLine="true"
+            android:textColor="@color/master_text"
+            android:textColorHint="@color/master_muted"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/browser_refresh"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/browser_button"
+            android:text="↻"
+            android:textColor="@color/master_text"
+            android:textSize="22sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingLeft="12dp"
+        android:paddingRight="12dp"
+        android:paddingBottom="6dp"
+        android:background="@color/browser_toolbar">
+
+        <Button
+            android:id="@+id/browser_home"
+            android:layout_width="0dp"
+            android:layout_height="38dp"
+            android:layout_weight="1"
+            android:background="@drawable/browser_button"
+            android:text="@string/browser_home"
+            android:textColor="@color/master_muted" />
+
+        <Button
+            android:id="@+id/browser_default"
+            android:layout_width="0dp"
+            android:layout_height="38dp"
+            android:layout_weight="1"
+            android:layout_marginLeft="8dp"
+            android:background="@drawable/browser_button"
+            android:text="@string/set_default_browser_short"
+            android:textColor="@color/master_muted" />
+    </LinearLayout>
+
+    <WebView
+        android:id="@+id/browser_webview"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@android:color/white" />
+</LinearLayout>
