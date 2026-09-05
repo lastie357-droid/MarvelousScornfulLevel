@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.app.Dialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -837,9 +838,10 @@ public class BrowserActivity extends ThemedActivity {
             // with its existing Android 14 minimum SDK without bundling a
             // browser engine or a helper library.
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            browserIntent.addCategory(Intent.CATEGORY_BROWSABLE);
             browserIntent.putExtra(CUSTOM_TAB_TITLE_VISIBILITY, 1);
             List<ResolveInfo> handlers = getPackageManager().queryIntentActivities(
-                    browserIntent, PackageManager.MATCH_DEFAULT_ONLY);
+                    browserIntent, 0);
             ResolveInfo selected = null;
             for (ResolveInfo handler : handlers) {
                 if (handler.activityInfo == null
@@ -855,32 +857,19 @@ public class BrowserActivity extends ThemedActivity {
                 }
             }
             if (selected == null || selected.activityInfo == null) {
-                // Some browsers do not advertise Custom Tabs support. Try a
-                // normal browser intent before reporting that no browser is
-                // available.
-                browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                browserIntent.addCategory(Intent.CATEGORY_BROWSABLE);
-                handlers = getPackageManager().queryIntentActivities(
-                        browserIntent, PackageManager.MATCH_DEFAULT_ONLY);
-                selected = null;
-                for (ResolveInfo handler : handlers) {
-                    if (handler.activityInfo == null
-                            || getPackageName().equals(handler.activityInfo.packageName)) {
-                        continue;
-                    }
-                    if ("com.android.chrome".equals(handler.activityInfo.packageName)) {
-                        selected = handler;
-                        break;
-                    }
-                    if (selected == null) {
-                        selected = handler;
-                    }
+                // Let Android show every eligible browser instead of rejecting
+                // the request because a browser did not advertise itself as a
+                // default handler.
+                Intent chooser = Intent.createChooser(
+                        browserIntent, getString(R.string.browser_secure_sign_in));
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    chooser.putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS,
+                            new ComponentName[] {
+                                    new ComponentName(this, BrowserActivity.class)
+                            });
                 }
-                if (selected == null || selected.activityInfo == null) {
-                    Toast.makeText(this, R.string.browser_secure_sign_in_unavailable,
-                            Toast.LENGTH_LONG).show();
-                    return;
-                }
+                startActivity(chooser);
+                return;
             }
             browserIntent.setPackage(selected.activityInfo.packageName);
             startActivity(browserIntent);
