@@ -22,6 +22,13 @@
     <string name="browser_downloads">Downloads</string>
     <string name="browser_clear_data">Clear browsing data</string>
     <string name="browser_sign_in_note">Gmail sign-in is user-controlled. Master App cannot import Chrome credentials or silently sign you in to other websites.</string>
+    <string name="browser_password_autofill">Saved passwords</string>
+    <string name="browser_autofill_title">Use saved passwords</string>
+    <string name="browser_autofill_message">Master App can use Android’s configured password autofill provider, such as Google Password Manager, to offer saved logins on websites. Your passwords stay with that provider and are never read or stored by Master App. Choose Google Password Manager in Android Autofill settings if it is not already selected.</string>
+    <string name="browser_open_autofill_settings">Open Autofill settings</string>
+    <string name="browser_autofill_unavailable">Password autofill requires Android 8.0 or newer.</string>
+    <string name="browser_autofill_settings_unavailable">Android Autofill settings could not be opened on this device.</string>
+    <string name="later">Later</string>
     <string name="browser_no_history">No browsing history yet.</string>
     <string name="browser_no_downloads">No downloads yet.</string>
     <string name="browser_download_started">Download started</string>

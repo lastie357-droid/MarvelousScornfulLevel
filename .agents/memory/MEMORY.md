@@ -1,0 +1,1 @@
+- [Browser password autofill](browser-password-autofill.md) — use Android Autofill for device password providers; Chrome/Google password sync is not exposed as a third-party browser API.

@@ -44,6 +44,7 @@ public class BrowserActivity extends ThemedActivity {
     private static final String PREFS = "master_browser";
     private static final String HISTORY_KEY = "history";
     private static final String DOWNLOADS_KEY = "downloads";
+    private static final String AUTOFILL_ONBOARDING_KEY = "autofill_onboarding_shown";
     private static final int MAX_HISTORY = 100;
     private static final int MAX_DOWNLOADS = 50;
 
@@ -156,6 +157,7 @@ public class BrowserActivity extends ThemedActivity {
 
         Uri incoming = getIntent().getData();
         createTab(incoming == null ? null : incoming.toString());
+        showAutofillOnboardingIfNeeded();
     }
 
     @Override
@@ -189,6 +191,12 @@ public class BrowserActivity extends ThemedActivity {
         settings.setDisplayZoomControls(false);
         settings.setLoadsImagesAutomatically(true);
         settings.setJavaScriptCanOpenWindowsAutomatically(false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // Let the device's configured password provider, such as Google
+            // Password Manager, offer credentials to login forms in this WebView.
+            // Master App never reads or stores those credentials.
+            webView.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_YES);
+        }
 
         CookieManager cookies = CookieManager.getInstance();
         cookies.setAcceptCookie(true);
@@ -356,7 +364,8 @@ public class BrowserActivity extends ThemedActivity {
                 getString(R.string.browser_downloads),
                 getString(R.string.set_default_browser),
                 getString(R.string.browser_clear_data),
-                getString(R.string.browser_sign_in_note)
+                getString(R.string.browser_sign_in_note),
+                getString(R.string.browser_password_autofill)
         };
         new AlertDialog.Builder(this)
                 .setTitle(R.string.browser_menu)
@@ -371,12 +380,55 @@ public class BrowserActivity extends ThemedActivity {
                             openDefaultBrowserSettings(BrowserActivity.this);
                         } else if (which == 3) {
                             clearBrowsingData();
-                        } else {
+                        } else if (which == 4) {
                             showGoogleSignInNotice();
+                        } else {
+                            openAutofillSettings();
                         }
                     }
                 })
                 .show();
+    }
+
+    private void showAutofillOnboardingIfNeeded() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O
+                || getSharedPreferences(PREFS, MODE_PRIVATE)
+                .getBoolean(AUTOFILL_ONBOARDING_KEY, false)) {
+            return;
+        }
+        getSharedPreferences(PREFS, MODE_PRIVATE).edit()
+                .putBoolean(AUTOFILL_ONBOARDING_KEY, true)
+                .apply();
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.browser_autofill_title)
+                .setMessage(R.string.browser_autofill_message)
+                .setPositiveButton(R.string.browser_open_autofill_settings,
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                openAutofillSettings();
+                            }
+                        })
+                .setNegativeButton(R.string.later, null)
+                .show();
+    }
+
+    private void openAutofillSettings() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            showMessage(R.string.browser_password_autofill,
+                    R.string.browser_autofill_unavailable);
+            return;
+        }
+        try {
+            // The public Settings class exposes the request-to-set-service
+            // action, but not the general Autofill settings action on all
+            // compile SDK stubs. Use the stable Android settings action here
+            // so the user can choose Google Password Manager.
+            startActivity(new Intent("android.settings.AUTOFILL_SETTINGS"));
+        } catch (Exception exception) {
+            showMessage(R.string.browser_password_autofill,
+                    R.string.browser_autofill_settings_unavailable);
+        }
     }
 
     private void showGoogleSignInNotice() {
