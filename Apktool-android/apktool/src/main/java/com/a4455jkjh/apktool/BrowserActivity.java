@@ -199,7 +199,7 @@ public class BrowserActivity extends ThemedActivity {
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                view.loadUrl(url);
+                loadLinkInsideApp(view, url);
                 return true;
             }
 
@@ -234,6 +234,51 @@ public class BrowserActivity extends ThemedActivity {
             }
         });
         return webView;
+    }
+
+    /**
+     * Keep navigation in Master App. In particular, never call ACTION_VIEW or
+     * another package for a web link, login redirect, mail link, or intent URL.
+     */
+    private void loadLinkInsideApp(WebView view, String url) {
+        if (url == null || url.length() == 0) {
+            return;
+        }
+        if (isWebUrl(url) || url.startsWith("file://")) {
+            view.loadUrl(url);
+            return;
+        }
+        if (url.startsWith("mailto:")) {
+            String address = url.substring("mailto:".length());
+            int queryStart = address.indexOf('?');
+            if (queryStart >= 0) {
+                address = address.substring(0, queryStart);
+            }
+            view.loadUrl(GMAIL_URL + "/mail/u/0/?view=cm&to=" + Uri.encode(address));
+            return;
+        }
+        if (url.startsWith("intent://")) {
+            try {
+                Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
+                String fallback = intent.getStringExtra("browser_fallback_url");
+                if (isWebUrl(fallback)) {
+                    view.loadUrl(fallback);
+                    return;
+                }
+                Uri data = intent.getData();
+                if (data != null && isWebUrl(data.toString())) {
+                    view.loadUrl(data.toString());
+                    return;
+                }
+            } catch (Exception ignored) {
+                // The URL is intentionally blocked below when no web fallback exists.
+            }
+        }
+        Toast.makeText(this, R.string.browser_link_blocked, Toast.LENGTH_SHORT).show();
+    }
+
+    private boolean isWebUrl(String url) {
+        return url != null && (url.startsWith("http://") || url.startsWith("https://"));
     }
 
     private void switchToTab(int index) {
