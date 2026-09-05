@@ -100,8 +100,10 @@
 	<string name="details">Details</string>
     <string name="launch_app">Launch app</string>
     <string name="uninstall_app">Uninstall</string>
+    <string name="app_uninstall_confirm">Do you want to uninstall %1$s?</string>
     <string name="app_no_launch_activity">This app has no launchable activity.</string>
     <string name="app_uninstall_unavailable">Uninstall settings could not be opened.</string>
+    <string name="app_system_uninstall_unavailable">System apps cannot be uninstalled from Master App.</string>
 
     <string name="text">%1$s</string>
     <string name="setting">Settings</string>
