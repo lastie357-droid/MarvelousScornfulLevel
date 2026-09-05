@@ -1,15 +1,18 @@
 package com.a4455jkjh.apktool;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Message;
 import android.provider.Settings;
 import android.view.KeyEvent;
 import android.view.View;
@@ -17,7 +20,11 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
+import android.webkit.PermissionRequest;
+import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebStorage;
 import android.webkit.WebView;
@@ -27,9 +34,11 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import java.io.ByteArrayInputStream;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
+import java.util.Locale;
 
 /**
  * A self-contained browser surface. Pages stay inside the app's WebView and
@@ -45,6 +54,9 @@ public class BrowserActivity extends ThemedActivity {
     private static final String HISTORY_KEY = "history";
     private static final String DOWNLOADS_KEY = "downloads";
     private static final String AUTOFILL_ONBOARDING_KEY = "autofill_onboarding_shown";
+    private static final String AD_BLOCKING_KEY = "ad_blocking_enabled";
+    private static final int WEB_PERMISSION_REQUEST_CODE = 701;
+    private static final int FILE_CHOOSER_REQUEST_CODE = 702;
     private static final int MAX_HISTORY = 100;
     private static final int MAX_DOWNLOADS = 50;
 
@@ -52,6 +64,9 @@ public class BrowserActivity extends ThemedActivity {
     private EditText addressBar;
     private FrameLayout webViewContainer;
     private int currentTab = -1;
+    private PermissionRequest pendingPermissionRequest;
+    private String[] pendingPermissionResources;
+    private ValueCallback<Uri[]> pendingFileCallback;
 
     private static class BrowserTab {
         private WebView webView;
@@ -170,7 +185,7 @@ public class BrowserActivity extends ThemedActivity {
         }
     }
 
-    private void createTab(String initialUrl) {
+    private BrowserTab createTab(String initialUrl) {
         final BrowserTab tab = new BrowserTab();
         tab.webView = buildWebView(tab);
         tabs.add(tab);
@@ -179,6 +194,7 @@ public class BrowserActivity extends ThemedActivity {
                 ViewGroup.LayoutParams.MATCH_PARENT));
         switchToTab(tabs.size() - 1);
         tab.webView.loadUrl(initialUrl == null ? HOME_URL : initialUrl);
+        return tab;
     }
 
     private WebView buildWebView(final BrowserTab tab) {
@@ -191,6 +207,17 @@ public class BrowserActivity extends ThemedActivity {
         settings.setDisplayZoomControls(false);
         settings.setLoadsImagesAutomatically(true);
         settings.setJavaScriptCanOpenWindowsAutomatically(false);
+        settings.setDatabaseEnabled(true);
+        settings.setAllowContentAccess(true);
+        settings.setAllowFileAccess(true);
+        settings.setMediaPlaybackRequiresUserGesture(false);
+        settings.setSupportMultipleWindows(true);
+        settings.setUseWideViewPort(true);
+        settings.setLoadWithOverviewMode(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            settings.setAllowFileAccessFromFileURLs(false);
+            settings.setAllowUniversalAccessFromFileURLs(false);
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Let the device's configured password provider, such as Google
             // Password Manager, offer credentials to login forms in this WebView.
@@ -209,6 +236,34 @@ public class BrowserActivity extends ThemedActivity {
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 loadLinkInsideApp(view, url);
                 return true;
+            }
+
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                if (request.isForMainFrame()) {
+                    loadLinkInsideApp(view, request.getUrl().toString());
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+                if (isAdBlockingEnabled() && BrowserAdBlocker.shouldBlock(url)) {
+                    return emptyBlockedResponse();
+                }
+                return super.shouldInterceptRequest(view, url);
+            }
+
+            @Override
+            public WebResourceResponse shouldInterceptRequest(
+                    WebView view, WebResourceRequest request) {
+                if (!request.isForMainFrame()
+                        && isAdBlockingEnabled()
+                        && BrowserAdBlocker.shouldBlock(request.getUrl().toString())) {
+                    return emptyBlockedResponse();
+                }
+                return super.shouldInterceptRequest(view, request);
             }
 
             @Override
@@ -233,6 +288,35 @@ public class BrowserActivity extends ThemedActivity {
                 tab.title = title == null ? "" : title;
                 updateCurrentChrome(tab);
             }
+
+            @Override
+            public void onPermissionRequest(final PermissionRequest request) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        handleWebPermissionRequest(request);
+                    }
+                });
+            }
+
+            @Override
+            public boolean onShowFileChooser(
+                    WebView webView, ValueCallback<Uri[]> filePathCallback,
+                    FileChooserParams fileChooserParams) {
+                openFileChooser(filePathCallback, fileChooserParams);
+                return true;
+            }
+
+            @Override
+            public boolean onCreateWindow(
+                    WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
+                BrowserTab newTab = createTab(null);
+                WebView.WebViewTransport transport =
+                        (WebView.WebViewTransport) resultMsg.obj;
+                transport.setWebView(newTab.webView);
+                resultMsg.sendToTarget();
+                return true;
+            }
         });
         webView.setDownloadListener(new DownloadListener() {
             @Override
@@ -242,6 +326,130 @@ public class BrowserActivity extends ThemedActivity {
             }
         });
         return webView;
+    }
+
+    private WebResourceResponse emptyBlockedResponse() {
+        return new WebResourceResponse(
+                "text/plain", "UTF-8", new ByteArrayInputStream(new byte[0]));
+    }
+
+    private boolean isAdBlockingEnabled() {
+        return getSharedPreferences(PREFS, MODE_PRIVATE)
+                .getBoolean(AD_BLOCKING_KEY, true);
+    }
+
+    private void handleWebPermissionRequest(PermissionRequest request) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            request.deny();
+            return;
+        }
+
+        ArrayList<String> supportedResources = new ArrayList<String>();
+        ArrayList<String> missingPermissions = new ArrayList<String>();
+        String[] resources = request.getResources();
+        for (String resource : resources) {
+            String permission = null;
+            if (PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(resource)) {
+                permission = Manifest.permission.CAMERA;
+            } else if (PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(resource)) {
+                permission = Manifest.permission.RECORD_AUDIO;
+            }
+            if (permission == null) {
+                continue;
+            }
+            supportedResources.add(resource);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                    && checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED
+                    && !missingPermissions.contains(permission)) {
+                missingPermissions.add(permission);
+            }
+        }
+
+        if (supportedResources.size() == 0) {
+            request.deny();
+            return;
+        }
+
+        String[] resourcesToGrant = supportedResources.toArray(
+                new String[supportedResources.size()]);
+        if (missingPermissions.size() > 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            pendingPermissionRequest = request;
+            pendingPermissionResources = resourcesToGrant;
+            requestPermissions(
+                    missingPermissions.toArray(new String[missingPermissions.size()]),
+                    WEB_PERMISSION_REQUEST_CODE);
+            return;
+        }
+        confirmWebPermission(request, resourcesToGrant);
+    }
+
+    private void confirmWebPermission(
+            final PermissionRequest request, final String[] resources) {
+        String origin = request.getOrigin() == null
+                ? getString(R.string.browser_unknown_site)
+                : request.getOrigin().toString();
+        boolean camera = false;
+        boolean microphone = false;
+        for (String resource : resources) {
+            camera |= PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(resource);
+            microphone |= PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(resource);
+        }
+        String capability;
+        if (camera && microphone) {
+            capability = getString(R.string.browser_camera_and_microphone);
+        } else if (camera) {
+            capability = getString(R.string.browser_camera);
+        } else {
+            capability = getString(R.string.browser_microphone);
+        }
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.browser_site_permission_title)
+                .setMessage(getString(R.string.browser_site_permission_message,
+                        origin, capability))
+                .setPositiveButton(R.string.allow, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        try {
+                            request.grant(resources);
+                        } catch (Exception ignored) {
+                            request.deny();
+                        }
+                    }
+                })
+                .setNegativeButton(R.string.deny, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        request.deny();
+                    }
+                })
+                .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        request.deny();
+                    }
+                })
+                .show();
+    }
+
+    private void openFileChooser(
+            ValueCallback<Uri[]> callback, WebChromeClient.FileChooserParams params) {
+        if (pendingFileCallback != null) {
+            pendingFileCallback.onReceiveValue(null);
+        }
+        pendingFileCallback = callback;
+        try {
+            Intent intent = params.createIntent();
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            if (params.getMode() == WebChromeClient.FileChooserParams.MODE_OPEN_MULTIPLE) {
+                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+            }
+            startActivityForResult(intent, FILE_CHOOSER_REQUEST_CODE);
+        } catch (Exception exception) {
+            pendingFileCallback = null;
+            callback.onReceiveValue(null);
+            Toast.makeText(this, R.string.browser_file_picker_unavailable,
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 
     /**
@@ -365,7 +573,13 @@ public class BrowserActivity extends ThemedActivity {
                 getString(R.string.set_default_browser),
                 getString(R.string.browser_clear_data),
                 getString(R.string.browser_sign_in_note),
-                getString(R.string.browser_password_autofill)
+                getString(R.string.browser_password_autofill),
+                getString(R.string.browser_ad_blocker)
+                        + " ("
+                        + getString(isAdBlockingEnabled()
+                        ? R.string.browser_ad_blocker_on
+                        : R.string.browser_ad_blocker_off)
+                        + ")"
         };
         new AlertDialog.Builder(this)
                 .setTitle(R.string.browser_menu)
@@ -382,12 +596,26 @@ public class BrowserActivity extends ThemedActivity {
                             clearBrowsingData();
                         } else if (which == 4) {
                             showGoogleSignInNotice();
-                        } else {
+                        } else if (which == 5) {
                             openAutofillSettings();
+                        } else {
+                            toggleAdBlocking();
                         }
                     }
                 })
                 .show();
+    }
+
+    private void toggleAdBlocking() {
+        boolean enabled = !isAdBlockingEnabled();
+        getSharedPreferences(PREFS, MODE_PRIVATE).edit()
+                .putBoolean(AD_BLOCKING_KEY, enabled)
+                .apply();
+        Toast.makeText(this,
+                enabled ? R.string.browser_ad_blocker_enabled
+                        : R.string.browser_ad_blocker_disabled,
+                Toast.LENGTH_SHORT).show();
+        getCurrentWebView().reload();
     }
 
     private void showAutofillOnboardingIfNeeded() {
@@ -568,6 +796,46 @@ public class BrowserActivity extends ThemedActivity {
                 .setMessage(message)
                 .setPositiveButton(R.string.ok, null)
                 .show();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(
+            int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode != WEB_PERMISSION_REQUEST_CODE) {
+            return;
+        }
+        PermissionRequest request = pendingPermissionRequest;
+        String[] resources = pendingPermissionResources;
+        pendingPermissionRequest = null;
+        pendingPermissionResources = null;
+        if (request == null || resources == null) {
+            return;
+        }
+        boolean granted = grantResults.length > 0;
+        for (int result : grantResults) {
+            granted &= result == PackageManager.PERMISSION_GRANTED;
+        }
+        if (granted) {
+            confirmWebPermission(request, resources);
+        } else {
+            request.deny();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != FILE_CHOOSER_REQUEST_CODE || pendingFileCallback == null) {
+            return;
+        }
+        ValueCallback<Uri[]> callback = pendingFileCallback;
+        pendingFileCallback = null;
+        Uri[] results = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            results = WebChromeClient.FileChooserParams.parseResult(resultCode, data);
+        }
+        callback.onReceiveValue(results);
     }
 
     private ArrayList<BrowserRecord> readRecords(String key) {

@@ -5,14 +5,14 @@ generated = []
 id = "-twf3vquflzuKpQ7Lbybp"
 uri = "file://Apktool-android/apktool/build/outputs/apk/debug/apktool-debug.apk"
 type = "unspecified"
-title = "Master App with password Autofill"
-description = "Debug APK rebuilt successfully with Android WebView Autofill support and a first-launch Google Password Manager setup prompt."
+title = "Master App enhanced browser APK"
+description = "Debug APK built successfully with JavaScript/WebView enhancements, WebRTC camera and microphone permissions, file upload support, popup tabs, and an in-app ad/tracker blocker."
 logical_id = "8ebe5878-9243-4502-957c-ad4e50c0734f"
-content_hash = "sha256:1b41a9868782086096a5feb6aadf12224c55f4ab224e9a83f0bb635be4fd6a46"
-size = 11805391
-mtime_ms = 1788623265762
-storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:233faa3d-5f83-4967-9e7f-6a6f6789eacc/8ebe5878-9243-4502-957c-ad4e50c0734f/555ccbed-dbd0-4582-aa89-29e4255711ff"
-storage_version_token = "1788623283338645"
+content_hash = "sha256:50741fff05f2d9ff97d3c6db653c3d9be2d4073c8e904ee41416da4547fa21c1"
+size = 8334404
+mtime_ms = 1788624117930
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:233faa3d-5f83-4967-9e7f-6a6f6789eacc/8ebe5878-9243-4502-957c-ad4e50c0734f/f04d503b-a0c8-4a84-be5d-2e1d1f9595f5"
+storage_version_token = "1788624137457182"
 content_type = "application/octet-stream"
 
 [[outputs]]

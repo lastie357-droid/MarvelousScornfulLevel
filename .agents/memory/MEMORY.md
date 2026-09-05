@@ -1,1 +1,2 @@
 - [Browser password autofill](browser-password-autofill.md) — use Android Autofill for device password providers; Chrome/Google password sync is not exposed as a third-party browser API.
+- [Embedded browser engine](browser-engine-constraints.md) — Master App relies on Android System WebView; add browser-layer features instead of inflating the APK with unused Chromium files.
