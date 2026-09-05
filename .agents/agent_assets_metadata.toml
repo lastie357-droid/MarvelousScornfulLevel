@@ -6,13 +6,13 @@ id = "-twf3vquflzuKpQ7Lbybp"
 uri = "file://Apktool-android/apktool/build/outputs/apk/debug/apktool-debug.apk"
 type = "unspecified"
 title = "Master App debug APK"
-description = "Successfully built debug APK for Master App."
+description = "Debug build generated from the updated Apktool Android project."
 logical_id = "8ebe5878-9243-4502-957c-ad4e50c0734f"
-content_hash = "sha256:da5bdf43dd01dc9d421dee31803ac29d17987a97403dd738cb79c2cce383f51b"
-size = 11830392
-mtime_ms = 1788624472245
-storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:233faa3d-5f83-4967-9e7f-6a6f6789eacc/8ebe5878-9243-4502-957c-ad4e50c0734f/b1761302-632e-4a21-88e6-1f608d212972"
-storage_version_token = "1788625332033162"
+content_hash = "sha256:faef4059436ae63bff5cfd029bc88dfacd0cb7a0817ffa9f0594d19922cdedaf"
+size = 8349804
+mtime_ms = 1788634218481
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:45a2fc1a-7344-442d-bce5-21ab4adf6497/8ebe5878-9243-4502-957c-ad4e50c0734f/1cbfd311-e047-4113-8df5-53fcb21bc59c"
+storage_version_token = "1788634223745658"
 content_type = "application/octet-stream"
 
 [[outputs]]
