@@ -1260,10 +1260,9 @@ public class BrowserActivity extends ThemedActivity {
 
     private void requestOrStartDownload(String url, String userAgent,
                                         String contentDisposition, String mimetype) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                && Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
-                && checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
+        if (!ApktoolPermissions.hasFileAccess(this)
+                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                && Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             pendingDownloadUrl = url;
             pendingDownloadUserAgent = userAgent;
             pendingDownloadContentDisposition = contentDisposition;
@@ -1294,9 +1293,11 @@ public class BrowserActivity extends ThemedActivity {
             request.setDescription(url);
             request.setNotificationVisibility(
                     DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                // App-specific external storage avoids scoped-storage crashes while
-                // keeping files available to DownloadManager and its notification.
+            if (ApktoolPermissions.hasFileAccess(this)) {
+                request.setDestinationInExternalPublicDir(
+                        Environment.DIRECTORY_DOWNLOADS, fileName);
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                // Safe fallback if the user has not granted broad file access.
                 request.setDestinationInExternalFilesDir(
                         this, Environment.DIRECTORY_DOWNLOADS, fileName);
             } else {
