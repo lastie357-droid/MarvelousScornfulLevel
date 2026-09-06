@@ -72,6 +72,7 @@ public class BrowserActivity extends ThemedActivity {
     private static final String AD_BLOCKING_KEY = "ad_blocking_enabled";
     private static final int WEB_PERMISSION_REQUEST_CODE = 701;
     private static final int STORAGE_PERMISSION_REQUEST_CODE = 702;
+    private static final int DOWNLOAD_PERMISSION_REQUEST_CODE = 703;
     private static final int MAX_HISTORY = 100;
     private static final int MAX_DOWNLOADS = 50;
 
@@ -90,6 +91,10 @@ public class BrowserActivity extends ThemedActivity {
     private ListView filePickerList;
     private TextView filePickerPath;
     private TextView filePickerSelect;
+    private String pendingDownloadUrl;
+    private String pendingDownloadUserAgent;
+    private String pendingDownloadContentDisposition;
+    private String pendingDownloadMimeType;
 
     private static class BrowserTab {
         private WebView webView;
@@ -370,7 +375,7 @@ public class BrowserActivity extends ThemedActivity {
             @Override
             public void onDownloadStart(String url, String userAgent, String contentDisposition,
                                         String mimetype, long contentLength) {
-                startDownload(url, userAgent, contentDisposition, mimetype);
+                requestOrStartDownload(url, userAgent, contentDisposition, mimetype);
             }
         });
         return webView;
@@ -1253,30 +1258,68 @@ public class BrowserActivity extends ThemedActivity {
                 .show();
     }
 
+    private void requestOrStartDownload(String url, String userAgent,
+                                        String contentDisposition, String mimetype) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                && Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
+                && checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            pendingDownloadUrl = url;
+            pendingDownloadUserAgent = userAgent;
+            pendingDownloadContentDisposition = contentDisposition;
+            pendingDownloadMimeType = mimetype;
+            requestPermissions(new String[] { Manifest.permission.WRITE_EXTERNAL_STORAGE },
+                    DOWNLOAD_PERMISSION_REQUEST_CODE);
+            return;
+        }
+        startDownload(url, userAgent, contentDisposition, mimetype);
+    }
+
     private void startDownload(String url, String userAgent, String contentDisposition,
                                String mimetype) {
         try {
-            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-            request.setMimeType(mimetype);
-            request.setTitle(URLUtil.guessFileName(url, contentDisposition, mimetype));
+            Uri downloadUri = Uri.parse(url);
+            if (!isWebUrl(url) || downloadUri.getHost() == null) {
+                Toast.makeText(this, R.string.browser_download_failed,
+                        Toast.LENGTH_LONG).show();
+                return;
+            }
+            String safeMimeType = mimetype == null || mimetype.trim().length() == 0
+                    ? "application/octet-stream" : mimetype;
+            String fileName = safeDownloadFileName(
+                    URLUtil.guessFileName(url, contentDisposition, safeMimeType));
+            DownloadManager.Request request = new DownloadManager.Request(downloadUri);
+            request.setMimeType(safeMimeType);
+            request.setTitle(fileName);
             request.setDescription(url);
             request.setNotificationVisibility(
                     DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-            request.setDestinationInExternalPublicDir(
-                    Environment.DIRECTORY_DOWNLOADS,
-                    URLUtil.guessFileName(url, contentDisposition, mimetype));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                // App-specific external storage avoids scoped-storage crashes while
+                // keeping files available to DownloadManager and its notification.
+                request.setDestinationInExternalFilesDir(
+                        this, Environment.DIRECTORY_DOWNLOADS, fileName);
+            } else {
+                request.setDestinationInExternalPublicDir(
+                        Environment.DIRECTORY_DOWNLOADS, fileName);
+            }
             if (userAgent != null) {
                 request.addRequestHeader("User-Agent", userAgent);
             }
             DownloadManager manager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+            if (manager == null) {
+                Toast.makeText(this, R.string.browser_download_failed,
+                        Toast.LENGTH_LONG).show();
+                return;
+            }
             manager.enqueue(request);
 
             ArrayList<BrowserRecord> records = readRecords(DOWNLOADS_KEY);
             ArrayList<BrowserRecord> updated = new ArrayList<BrowserRecord>();
             updated.add(new BrowserRecord(
-                    URLUtil.guessFileName(url, contentDisposition, mimetype), url,
+                    fileName, url,
                     getString(R.string.browser_download_file,
-                            URLUtil.guessFileName(url, contentDisposition, mimetype))));
+                            fileName)));
             for (BrowserRecord record : records) {
                 if (!record.url.equals(url)) {
                     updated.add(record);
@@ -1288,8 +1331,21 @@ public class BrowserActivity extends ThemedActivity {
             writeRecords(DOWNLOADS_KEY, updated);
             Toast.makeText(this, R.string.browser_download_started, Toast.LENGTH_LONG).show();
         } catch (Exception exception) {
-            Toast.makeText(this, exception.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, R.string.browser_download_failed, Toast.LENGTH_LONG).show();
         }
+    }
+
+    private String safeDownloadFileName(String suggestedName) {
+        String name = suggestedName == null ? "" : suggestedName.trim();
+        if (name.length() == 0) {
+            name = "download";
+        }
+        name = new File(name).getName();
+        name = name.replaceAll("[\\\\/:*?\"<>|\\p{Cntrl}]", "_").trim();
+        if (name.length() == 0 || ".".equals(name) || "..".equals(name)) {
+            return "download";
+        }
+        return name.length() > 180 ? name.substring(0, 180) : name;
     }
 
     private void showDownloads() {
@@ -1349,6 +1405,25 @@ public class BrowserActivity extends ThemedActivity {
                 showInternalFilePicker();
             } else {
                 finishFileSelection(false);
+            }
+            return;
+        }
+        if (requestCode == DOWNLOAD_PERMISSION_REQUEST_CODE) {
+            boolean granted = grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED;
+            String url = pendingDownloadUrl;
+            String userAgent = pendingDownloadUserAgent;
+            String disposition = pendingDownloadContentDisposition;
+            String mimetype = pendingDownloadMimeType;
+            pendingDownloadUrl = null;
+            pendingDownloadUserAgent = null;
+            pendingDownloadContentDisposition = null;
+            pendingDownloadMimeType = null;
+            if (granted && url != null) {
+                startDownload(url, userAgent, disposition, mimetype);
+            } else {
+                Toast.makeText(this, R.string.browser_download_permission_needed,
+                        Toast.LENGTH_LONG).show();
             }
             return;
         }
