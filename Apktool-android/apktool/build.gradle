@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.a4455jkjh.apktool"
-        minSdkVersion 21
+        minSdkVersion 14
         targetSdkVersion 36
         versionCode 1903280240
         versionName "2.4.0-190328"
@@ -29,6 +29,5 @@ dependencies {
     implementation 'androidx.viewpager:viewpager:1.0.0'
     implementation 'androidx.interpolator:interpolator:1.0.0'
     implementation 'androidx.fragment:fragment:1.0.0'
-    implementation 'org.mozilla.geckoview:geckoview:140.0.20250707120347'
 }
 

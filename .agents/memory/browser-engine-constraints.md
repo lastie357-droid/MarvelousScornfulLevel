@@ -3,20 +3,20 @@ name: Embedded browser engine
 description: Browser engine boundary and feature strategy for Master App.
 ---
 
-Master App uses an embedded GeckoView engine rather than Android System WebView. GeckoView supplies the independent browser runtime; the app supplies permissions, navigation, file handling, tabs, and policy features around it.
+Master App uses Android System WebView as its browser engine. The device's WebView provider supplies the Chromium runtime; the app supplies permissions, navigation, file handling, tabs, downloads, and policy features around it.
 
-**Why:** The product requirement is a self-contained browser: identity-provider pages and ordinary links must remain inside Master App instead of being handed to Chrome, Firefox, or another installed browser.
+**Why:** The product requirement is an in-app browser surface with a dependable APK size and no bundled third-party browser engine.
 
-**How to apply:** Prefer GeckoSession/GeckoView APIs and explicit user controls. Keep GeckoView version, Android minimum SDK, native libraries, and APK-size impact in mind for future browser changes.
+**How to apply:** Prefer WebView/WebSettings/WebViewClient/WebChromeClient APIs and explicit user controls. Keep navigation, tabs, downloads, permissions, and file uploads inside BrowserActivity.
 
-The browser's website file-upload flow should remain inside Master App: use GeckoSession's file prompt and return selected URIs to GeckoView.
+The browser's website file-upload flow should remain inside Master App: use WebChromeClient's file chooser and return selected local URIs to WebView.
 
-**Why:** The product requirement is that upload selection does not launch another browser; GeckoView exposes a prompt callback instead of WebView's file chooser callback.
+**Why:** The product requirement is that upload selection does not launch another browser, while WebView provides a normal file callback.
 
-**How to apply:** Preserve MIME filtering and single/multiple selection when extending the GeckoView document-picker flow.
+**How to apply:** Preserve the internal directory picker, MIME/extension filtering, and single/multiple selection around WebChromeClient callbacks.
 
-Identity providers may reject embedded WebViews even when their user-agent is changed to resemble Chrome. Master App now uses GeckoView as its browser surface, so secure account flows stay in-app without external-browser routing.
+Identity providers may reject embedded WebViews even when their user-agent is changed to resemble Chrome. Master App intentionally keeps sign-in pages in its WebView because external-browser routing is not acceptable for this product.
 
-**Why:** Google and similar providers use embedded-browser detection beyond the user-agent; GeckoView provides a real independent browser engine while preserving the product's self-contained behavior.
+**Why:** The product prioritizes a self-contained browser surface over provider-specific embedded-login restrictions.
 
-**How to apply:** Keep ordinary pages and identity-provider pages in GeckoView. Never restore the old Custom Tab or ACTION_VIEW sign-in fallback unless the product requirement explicitly changes.
+**How to apply:** Keep ordinary pages and identity-provider pages in WebView. Do not restore Custom Tab or ACTION_VIEW sign-in routing unless the product requirement explicitly changes.

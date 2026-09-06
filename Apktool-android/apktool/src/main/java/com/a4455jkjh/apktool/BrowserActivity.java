@@ -5,11 +5,10 @@ import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.ClipData;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -51,19 +50,14 @@ import java.util.HashSet;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
-import org.mozilla.geckoview.AllowOrDeny;
-import org.mozilla.geckoview.GeckoResult;
-import org.mozilla.geckoview.GeckoSession;
-import org.mozilla.geckoview.GeckoView;
 
 /**
  * A self-contained browser surface. Ordinary pages stay inside the app's
- * GeckoView. Master App owns the browser engine, profile, tabs, history,
+ * WebView. Master App owns the browser engine, profile, tabs, history,
  * downloads, permissions and navigation without launching another browser.
  *
- * GeckoView embeds Mozilla's browser engine directly in the Master App APK.
+ * Android WebView uses the Chromium engine supplied by the device.
  */
 public class BrowserActivity extends ThemedActivity {
     private static final String HOME_URL = "https://www.google.com";
@@ -77,7 +71,6 @@ public class BrowserActivity extends ThemedActivity {
     private static final String AD_BLOCKING_KEY = "ad_blocking_enabled";
     private static final int WEB_PERMISSION_REQUEST_CODE = 701;
     private static final int STORAGE_PERMISSION_REQUEST_CODE = 702;
-    private static final int GECKO_FILE_REQUEST_CODE = 703;
     private static final int MAX_HISTORY = 100;
     private static final int MAX_DOWNLOADS = 50;
 
@@ -96,15 +89,11 @@ public class BrowserActivity extends ThemedActivity {
     private ListView filePickerList;
     private TextView filePickerPath;
     private TextView filePickerSelect;
-    private GeckoSession.PromptDelegate.FilePrompt pendingGeckoFilePrompt;
-    private GeckoResult<GeckoSession.PromptDelegate.PromptResponse> pendingGeckoFileResult;
 
     private static class BrowserTab {
-        private GeckoView webView;
-        private GeckoSession session;
+        private WebView webView;
         private String title = "";
         private String url = "";
-        private boolean canGoBack;
     }
 
     private static class BrowserRecord {
@@ -141,7 +130,7 @@ public class BrowserActivity extends ThemedActivity {
         findViewById(R.id.browser_home).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                getCurrentSession().loadUri(HOME_URL);
+                getCurrentWebView().loadUrl(HOME_URL);
             }
         });
         findViewById(R.id.browser_tab_count).setOnClickListener(new View.OnClickListener() {
@@ -203,109 +192,174 @@ public class BrowserActivity extends ThemedActivity {
 
     private BrowserTab createTab(String initialUrl) {
         final BrowserTab tab = new BrowserTab();
-        tab.session = new GeckoSession();
-        tab.webView = buildGeckoView(tab);
+        tab.webView = buildWebView(tab);
         tabs.add(tab);
         webViewContainer.addView(tab.webView, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
         switchToTab(tabs.size() - 1);
-        tab.session.open(ApktoolApplication.getGeckoRuntime());
-        tab.webView.setSession(tab.session);
-        tab.session.loadUri(initialUrl == null ? HOME_URL : initialUrl);
+        tab.webView.loadUrl(initialUrl == null ? HOME_URL : initialUrl);
         return tab;
     }
 
-    private GeckoView buildGeckoView(final BrowserTab tab) {
-        GeckoView browserView = new GeckoView(this);
-        tab.session.setNavigationDelegate(new GeckoSession.NavigationDelegate() {
+    private WebView buildWebView(final BrowserTab tab) {
+        WebView webView = new WebView(this);
+        WebSettings settings = webView.getSettings();
+        settings.setJavaScriptEnabled(true);
+        settings.setDomStorageEnabled(true);
+        settings.setSupportZoom(true);
+        settings.setBuiltInZoomControls(true);
+        settings.setDisplayZoomControls(false);
+        settings.setLoadsImagesAutomatically(true);
+        settings.setJavaScriptCanOpenWindowsAutomatically(false);
+        settings.setDatabaseEnabled(true);
+        settings.setAllowContentAccess(true);
+        settings.setAllowFileAccess(true);
+        settings.setMediaPlaybackRequiresUserGesture(false);
+        settings.setSupportMultipleWindows(true);
+        settings.setUseWideViewPort(true);
+        settings.setLoadWithOverviewMode(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            settings.setSafeBrowsingEnabled(true);
+            webView.setImportantForAutofill(View.IMPORTANT_FOR_AUTOFILL_YES);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            settings.setAllowFileAccessFromFileURLs(false);
+            settings.setAllowUniversalAccessFromFileURLs(false);
+        }
+        applyBrowserSettings(settings);
+
+        CookieManager cookies = CookieManager.getInstance();
+        cookies.setAcceptCookie(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            cookies.setAcceptThirdPartyCookies(webView, true);
+        }
+
+        webView.setWebViewClient(new WebViewClient() {
             @Override
-            public GeckoResult<AllowOrDeny> onLoadRequest(
-                    GeckoSession session, GeckoSession.NavigationDelegate.LoadRequest request) {
-                if (request.uri == null || isWebUrl(request.uri)
-                        || request.uri.startsWith("file://")) {
-                    return null;
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                loadLinkInsideApp(view, url);
+                return true;
+            }
+
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                if (request.isForMainFrame()) {
+                    loadLinkInsideApp(view, request.getUrl().toString());
+                    return true;
                 }
-                loadLinkInsideApp(tab, request.uri);
-                return GeckoResult.fromValue(AllowOrDeny.DENY);
+                return false;
             }
 
             @Override
-            public GeckoResult<GeckoSession> onNewSession(
-                    GeckoSession session, String uri) {
-                BrowserTab newTab = createTab(uri);
-                return GeckoResult.fromValue(newTab.session);
+            public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+                if (isAdBlockingEnabled() && BrowserAdBlocker.shouldBlock(url)) {
+                    return emptyBlockedResponse();
+                }
+                return super.shouldInterceptRequest(view, url);
             }
 
             @Override
-            public void onLocationChange(GeckoSession session, String url,
-                    List<GeckoSession.PermissionDelegate.ContentPermission> permissions,
-                    Boolean hasUserGesture) {
-                tab.url = url == null ? "" : url;
+            public WebResourceResponse shouldInterceptRequest(
+                    WebView view, WebResourceRequest request) {
+                if (!request.isForMainFrame()
+                        && isAdBlockingEnabled()
+                        && BrowserAdBlocker.shouldBlock(request.getUrl().toString())) {
+                    return emptyBlockedResponse();
+                }
+                return super.shouldInterceptRequest(view, request);
+            }
+
+            @Override
+            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                super.onPageStarted(view, url, favicon);
+                tab.url = url;
                 updateCurrentChrome(tab);
             }
 
             @Override
-            public void onCanGoBack(GeckoSession session, boolean canGoBack) {
-                tab.canGoBack = canGoBack;
-            }
-        });
-        tab.session.setProgressDelegate(new GeckoSession.ProgressDelegate() {
-            @Override
-            public void onPageStart(GeckoSession session, String url) {
-                tab.url = url == null ? "" : url;
-                updateCurrentChrome(tab);
-            }
-
-            @Override
-            public void onPageStop(GeckoSession session, boolean success) {
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                tab.url = url;
+                improvePasswordFieldAutofill(view);
                 rememberHistory(tab);
                 updateCurrentChrome(tab);
             }
         });
-        tab.session.setContentDelegate(new GeckoSession.ContentDelegate() {
+        webView.setWebChromeClient(new WebChromeClient() {
             @Override
-            public void onTitleChange(GeckoSession session, String title) {
+            public void onReceivedTitle(WebView view, String title) {
+                super.onReceivedTitle(view, title);
                 tab.title = title == null ? "" : title;
                 updateCurrentChrome(tab);
             }
 
             @Override
-            public void onCloseRequest(GeckoSession session) {
-                int index = tabs.indexOf(tab);
-                if (index >= 0) {
-                    removeTab(index);
-                }
+            public void onPermissionRequest(final PermissionRequest request) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        handleWebPermissionRequest(request);
+                    }
+                });
             }
-        });
-        tab.session.setPromptDelegate(new GeckoSession.PromptDelegate() {
+
             @Override
-            public GeckoResult<GeckoSession.PromptDelegate.PromptResponse> onFilePrompt(
-                    GeckoSession session, GeckoSession.PromptDelegate.FilePrompt prompt) {
-                pendingGeckoFilePrompt = prompt;
-                pendingGeckoFileResult = new GeckoResult<
-                        GeckoSession.PromptDelegate.PromptResponse>();
-                Intent picker = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                picker.addCategory(Intent.CATEGORY_OPENABLE);
-                String mimeType = "*/*";
-                if (prompt.mimeTypes != null && prompt.mimeTypes.length == 1
-                        && prompt.mimeTypes[0] != null
-                        && prompt.mimeTypes[0].length() > 0) {
-                    mimeType = prompt.mimeTypes[0];
-                }
-                picker.setType(mimeType);
-                picker.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-                try {
-                    startActivityForResult(picker, GECKO_FILE_REQUEST_CODE);
-                } catch (Exception exception) {
-                    pendingGeckoFileResult.complete(prompt.dismiss());
-                    pendingGeckoFilePrompt = null;
-                    pendingGeckoFileResult = null;
-                }
-                return pendingGeckoFileResult;
+            public boolean onShowFileChooser(
+                    WebView webView, ValueCallback<Uri[]> filePathCallback,
+                    FileChooserParams fileChooserParams) {
+                openFileChooser(filePathCallback, fileChooserParams);
+                return true;
+            }
+
+            @Override
+            public boolean onCreateWindow(
+                    WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
+                BrowserTab newTab = createTab(null);
+                WebView.WebViewTransport transport =
+                        (WebView.WebViewTransport) resultMsg.obj;
+                transport.setWebView(newTab.webView);
+                resultMsg.sendToTarget();
+                return true;
             }
         });
-        return browserView;
+        webView.setDownloadListener(new DownloadListener() {
+            @Override
+            public void onDownloadStart(String url, String userAgent, String contentDisposition,
+                                        String mimetype, long contentLength) {
+                startDownload(url, userAgent, contentDisposition, mimetype);
+            }
+        });
+        return webView;
+    }
+
+    private void applyBrowserSettings(WebSettings settings) {
+        boolean desktop = getSharedPreferences(PREFS, MODE_PRIVATE)
+                .getBoolean("browser_desktop_mode", true);
+        settings.setUserAgentString(desktop ? getDesktopUserAgent() : null);
+    }
+
+    private String getDesktopUserAgent() {
+        String userAgent = WebSettings.getDefaultUserAgent(this);
+        userAgent = userAgent.replace("; wv", "");
+        userAgent = userAgent.replace("Version/4.0 ", "");
+        return userAgent.replace(" Mobile", "");
+    }
+
+    private void improvePasswordFieldAutofill(final WebView webView) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return;
+        }
+        webView.evaluateJavascript(
+                "(function(){"
+                        + "var p=document.querySelectorAll('input[type=password]');"
+                        + "for(var i=0;i<p.length;i++){p[i].setAttribute('autocomplete','current-password');"
+                        + "var f=p[i].form;if(f){var u=f.querySelector('input:not([type=password])');"
+                        + "if(u&&!u.getAttribute('autocomplete'))u.setAttribute('autocomplete','username');}}"
+                        + "})();", null);
     }
 
     private void restoreTabs(String incomingUrl) {
@@ -686,16 +740,15 @@ public class BrowserActivity extends ThemedActivity {
     }
 
     /**
-     * Resolve browser links without leaving Master App. GeckoView handles
-     * identity-provider pages in the embedded engine instead of handing them
-     * to another installed application.
+     * Resolve browser links without leaving Master App. This deliberately
+     * keeps identity-provider pages in the app's WebView as requested.
      */
-    private void loadLinkInsideApp(BrowserTab tab, String url) {
+    private void loadLinkInsideApp(WebView view, String url) {
         if (url == null || url.length() == 0) {
             return;
         }
         if (isWebUrl(url) || url.startsWith("file://")) {
-            tab.session.loadUri(url);
+            view.loadUrl(url);
             return;
         }
         if (url.startsWith("mailto:")) {
@@ -704,7 +757,7 @@ public class BrowserActivity extends ThemedActivity {
             if (queryStart >= 0) {
                 address = address.substring(0, queryStart);
             }
-            tab.session.loadUri(GMAIL_URL + "/mail/u/0/?view=cm&to=" + Uri.encode(address));
+            view.loadUrl(GMAIL_URL + "/mail/u/0/?view=cm&to=" + Uri.encode(address));
             return;
         }
         if (url.startsWith("intent://")) {
@@ -712,12 +765,12 @@ public class BrowserActivity extends ThemedActivity {
                 Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
                 String fallback = intent.getStringExtra("browser_fallback_url");
                 if (isWebUrl(fallback)) {
-                    tab.session.loadUri(fallback);
+                    view.loadUrl(fallback);
                     return;
                 }
                 Uri data = intent.getData();
                 if (data != null && isWebUrl(data.toString())) {
-                    tab.session.loadUri(data.toString());
+                    view.loadUrl(data.toString());
                     return;
                 }
             } catch (Exception ignored) {
@@ -742,8 +795,8 @@ public class BrowserActivity extends ThemedActivity {
         updateCurrentChrome(tabs.get(currentTab));
     }
 
-    private GeckoSession getCurrentSession() {
-        return tabs.get(currentTab).session;
+    private WebView getCurrentWebView() {
+        return tabs.get(currentTab).webView;
     }
 
     private void updateCurrentChrome(BrowserTab tab) {
@@ -769,7 +822,7 @@ public class BrowserActivity extends ThemedActivity {
                 query = "https://" + query;
             }
         }
-        getCurrentSession().loadUri(query);
+        getCurrentWebView().loadUrl(query);
     }
 
     private void showTabs() {
@@ -924,7 +977,7 @@ public class BrowserActivity extends ThemedActivity {
                 .apply();
         Toast.makeText(this, enabled ? R.string.browser_desktop_mode_on
                 : R.string.browser_desktop_mode_off, Toast.LENGTH_SHORT).show();
-        getCurrentSession().reload();
+        getCurrentWebView().reload();
     }
 
     private void returnToMasterHome() {
@@ -941,7 +994,10 @@ public class BrowserActivity extends ThemedActivity {
         }
         BrowserTab removed = tabs.remove(index);
         webViewContainer.removeView(removed.webView);
-        removed.session.close();
+        removed.webView.stopLoading();
+        removed.webView.setWebChromeClient(null);
+        removed.webView.setWebViewClient(null);
+        removed.webView.destroy();
         if (tabs.isEmpty()) {
             currentTab = -1;
             createTab(null);
@@ -964,7 +1020,7 @@ public class BrowserActivity extends ThemedActivity {
                 enabled ? R.string.browser_ad_blocker_enabled
                         : R.string.browser_ad_blocker_disabled,
                 Toast.LENGTH_SHORT).show();
-        getCurrentSession().reload();
+        getCurrentWebView().reload();
     }
 
     private void showAutofillOnboardingIfNeeded() {
@@ -1016,7 +1072,7 @@ public class BrowserActivity extends ThemedActivity {
                         new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        getCurrentSession().loadUri(GMAIL_URL);
+                        getCurrentWebView().loadUrl(GMAIL_URL);
                     }
                 })
                 .setNegativeButton(R.string.cancel, null)
@@ -1128,9 +1184,11 @@ public class BrowserActivity extends ThemedActivity {
 
     private void clearBrowsingData() {
         for (BrowserTab tab : tabs) {
-            tab.session.reload();
+            tab.webView.clearHistory();
+            tab.webView.clearCache(true);
         }
-        ApktoolApplication.getGeckoRuntime().getStorageController().clearData(0);
+        CookieManager.getInstance().removeAllCookie();
+        WebStorage.getInstance().deleteAllData();
         getSharedPreferences(PREFS, MODE_PRIVATE).edit()
                 .remove(HISTORY_KEY)
                 .remove(DOWNLOADS_KEY)
@@ -1144,41 +1202,6 @@ public class BrowserActivity extends ThemedActivity {
                 .setMessage(message)
                 .setPositiveButton(R.string.ok, null)
                 .show();
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode != GECKO_FILE_REQUEST_CODE) {
-            return;
-        }
-        GeckoSession.PromptDelegate.FilePrompt prompt = pendingGeckoFilePrompt;
-        GeckoResult<GeckoSession.PromptDelegate.PromptResponse> result =
-                pendingGeckoFileResult;
-        pendingGeckoFilePrompt = null;
-        pendingGeckoFileResult = null;
-        if (prompt == null || result == null) {
-            return;
-        }
-        if (resultCode != RESULT_OK || data == null) {
-            result.complete(prompt.dismiss());
-            return;
-        }
-        ArrayList<Uri> selectedUris = new ArrayList<Uri>();
-        if (data.getClipData() != null) {
-            ClipData clipData = data.getClipData();
-            for (int i = 0; i < clipData.getItemCount(); i++) {
-                selectedUris.add(clipData.getItemAt(i).getUri());
-            }
-        } else if (data.getData() != null) {
-            selectedUris.add(data.getData());
-        }
-        if (selectedUris.isEmpty()) {
-            result.complete(prompt.dismiss());
-        } else {
-            result.complete(prompt.confirm(this,
-                    selectedUris.toArray(new Uri[selectedUris.size()])));
-        }
     }
 
     @Override
@@ -1273,8 +1296,8 @@ public class BrowserActivity extends ThemedActivity {
 
     @Override
     public void onBackPressed() {
-        if (currentTab >= 0 && tabs.get(currentTab).canGoBack) {
-            getCurrentSession().goBack();
+        if (currentTab >= 0 && getCurrentWebView().canGoBack()) {
+            getCurrentWebView().goBack();
             return;
         }
         if (tabs.size() > 1) {
@@ -1288,6 +1311,9 @@ public class BrowserActivity extends ThemedActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        for (BrowserTab tab : tabs) {
+            applyBrowserSettings(tab.webView.getSettings());
+        }
     }
 
     @Override
@@ -1299,8 +1325,10 @@ public class BrowserActivity extends ThemedActivity {
     @Override
     protected void onDestroy() {
         for (BrowserTab tab : tabs) {
-            tab.session.stop();
-            tab.session.close();
+            tab.webView.stopLoading();
+            tab.webView.setWebChromeClient(null);
+            tab.webView.setWebViewClient(null);
+            tab.webView.destroy();
         }
         tabs.clear();
         super.onDestroy();
