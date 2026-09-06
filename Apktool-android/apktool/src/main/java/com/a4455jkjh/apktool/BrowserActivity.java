@@ -130,7 +130,7 @@ public class BrowserActivity extends ThemedActivity {
         findViewById(R.id.browser_home).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                getCurrentWebView().loadUrl(HOME_URL);
+                loadLinkInsideApp(getCurrentWebView(), HOME_URL);
             }
         });
         findViewById(R.id.browser_tab_count).setOnClickListener(new View.OnClickListener() {
@@ -198,7 +198,7 @@ public class BrowserActivity extends ThemedActivity {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
         switchToTab(tabs.size() - 1);
-        tab.webView.loadUrl(initialUrl == null ? HOME_URL : initialUrl);
+        loadLinkInsideApp(tab.webView, initialUrl == null ? HOME_URL : initialUrl);
         return tab;
     }
 
@@ -747,12 +747,13 @@ public class BrowserActivity extends ThemedActivity {
         if (url == null || url.length() == 0) {
             return;
         }
-        if (isWebUrl(url) || url.startsWith("file://")) {
+        if (isWebUrl(url) || isFileUrl(url)) {
             view.loadUrl(url);
             return;
         }
-        if (url.startsWith("mailto:")) {
-            String address = url.substring("mailto:".length());
+        String scheme = getUrlScheme(url);
+        if ("mailto".equalsIgnoreCase(scheme)) {
+            String address = url.substring(scheme.length() + 1);
             int queryStart = address.indexOf('?');
             if (queryStart >= 0) {
                 address = address.substring(0, queryStart);
@@ -760,28 +761,72 @@ public class BrowserActivity extends ThemedActivity {
             view.loadUrl(GMAIL_URL + "/mail/u/0/?view=cm&to=" + Uri.encode(address));
             return;
         }
-        if (url.startsWith("intent://")) {
+        if ("intent".equalsIgnoreCase(scheme)) {
             try {
                 Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
                 String fallback = intent.getStringExtra("browser_fallback_url");
                 if (isWebUrl(fallback)) {
-                    view.loadUrl(fallback);
+                    loadLinkInsideApp(view, fallback);
                     return;
                 }
                 Uri data = intent.getData();
                 if (data != null && isWebUrl(data.toString())) {
-                    view.loadUrl(data.toString());
+                    loadLinkInsideApp(view, data.toString());
                     return;
                 }
             } catch (Exception ignored) {
                 // The URL is intentionally blocked when no web fallback exists.
             }
         }
+        String wrappedWebUrl = extractWrappedWebUrl(url);
+        if (wrappedWebUrl != null) {
+            loadLinkInsideApp(view, wrappedWebUrl);
+            return;
+        }
         Toast.makeText(this, R.string.browser_link_blocked, Toast.LENGTH_SHORT).show();
     }
 
     private boolean isWebUrl(String url) {
-        return url != null && (url.startsWith("http://") || url.startsWith("https://"));
+        String scheme = getUrlScheme(url);
+        return "http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme);
+    }
+
+    private boolean isFileUrl(String url) {
+        return "file".equalsIgnoreCase(getUrlScheme(url));
+    }
+
+    private String getUrlScheme(String url) {
+        if (url == null) {
+            return null;
+        }
+        try {
+            return Uri.parse(url).getScheme();
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    /**
+     * Some websites wrap a normal web URL in a browser-specific custom scheme.
+     * Extract only the web destination; never launch the custom-scheme handler.
+     */
+    private String extractWrappedWebUrl(String url) {
+        try {
+            Uri parsed = Uri.parse(url);
+            String scheme = parsed.getScheme();
+            if (scheme == null) {
+                return null;
+            }
+            if ("googlechrome".equalsIgnoreCase(scheme)
+                    || "googlechrome-x-callback".equalsIgnoreCase(scheme)
+                    || "browser".equalsIgnoreCase(scheme)) {
+                String destination = parsed.getQueryParameter("url");
+                return isWebUrl(destination) ? destination : null;
+            }
+        } catch (Exception ignored) {
+            // The custom scheme is blocked when it has no web destination.
+        }
+        return null;
     }
 
     private void switchToTab(int index) {
@@ -822,7 +867,7 @@ public class BrowserActivity extends ThemedActivity {
                 query = "https://" + query;
             }
         }
-        getCurrentWebView().loadUrl(query);
+        loadLinkInsideApp(getCurrentWebView(), query);
     }
 
     private void showTabs() {

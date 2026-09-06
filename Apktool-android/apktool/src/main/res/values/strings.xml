@@ -27,8 +27,8 @@
     <string name="browser_history">History</string>
     <string name="browser_downloads">Downloads</string>
     <string name="browser_clear_data">Clear browsing data</string>
-    <string name="browser_sign_in_note">Some identity providers block embedded WebViews. Master App will use a secure browser tab for sign-in, then return you to the site.</string>
-    <string name="browser_secure_sign_in">Open secure sign-in</string>
+    <string name="browser_sign_in_note">All sign-in pages and web links stay inside Master App. External browser apps are never opened.</string>
+    <string name="browser_secure_sign_in">Open sign-in inside Master App</string>
     <string name="browser_secure_sign_in_unavailable">A secure browser could not be opened on this device.</string>
     <string name="browser_password_autofill">Saved passwords</string>
     <string name="browser_autofill_title">Use saved passwords</string>
