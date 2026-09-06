@@ -83,6 +83,36 @@
             android:textStyle="bold" />
 
         <Button
+            android:id="@+id/open_media"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/master_button_secondary"
+            android:gravity="center_vertical"
+            android:minHeight="64dp"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:text="@string/media_hub"
+            android:textColor="@color/master_text"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/open_tools"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/master_button_secondary"
+            android:gravity="center_vertical"
+            android:minHeight="64dp"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:text="@string/tools_title"
+            android:textColor="@color/master_text"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <Button
             android:id="@+id/set_default_browser"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

@@ -31,6 +31,18 @@ public class MainActivity extends ThemedActivity {
                 startActivity(new Intent(MainActivity.this, BrowserActivity.class));
             }
         });
+        findViewById(R.id.open_media).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this, MediaActivity.class));
+            }
+        });
+        findViewById(R.id.open_tools).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this, ToolsActivity.class));
+            }
+        });
         findViewById(R.id.set_default_browser).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

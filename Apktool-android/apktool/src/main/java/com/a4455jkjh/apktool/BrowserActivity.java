@@ -27,6 +27,7 @@ import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
+import android.webkit.RenderProcessGoneDetail;
 import android.webkit.WebSettings;
 import android.webkit.WebStorage;
 import android.webkit.WebView;
@@ -130,7 +131,10 @@ public class BrowserActivity extends ThemedActivity {
         findViewById(R.id.browser_home).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                loadLinkInsideApp(getCurrentWebView(), HOME_URL);
+                WebView current = getCurrentWebView();
+                if (current != null) {
+                    loadLinkInsideApp(current, HOME_URL);
+                }
             }
         });
         findViewById(R.id.browser_tab_count).setOnClickListener(new View.OnClickListener() {
@@ -149,6 +153,30 @@ public class BrowserActivity extends ThemedActivity {
             @Override
             public void onClick(View view) {
                 showBrowserMenu();
+            }
+        });
+        findViewById(R.id.browser_back).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                WebView current = getCurrentWebView();
+                if (current != null && current.canGoBack()) {
+                    current.goBack();
+                }
+            }
+        });
+        findViewById(R.id.browser_forward).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                WebView current = getCurrentWebView();
+                if (current != null && current.canGoForward()) {
+                    current.goForward();
+                }
+            }
+        });
+        findViewById(R.id.browser_zoom).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showZoomControls();
             }
         });
 
@@ -286,7 +314,19 @@ public class BrowserActivity extends ThemedActivity {
                 tab.url = url;
                 improvePasswordFieldAutofill(view);
                 rememberHistory(tab);
+                saveTabs();
                 updateCurrentChrome(tab);
+            }
+
+            @Override
+            public boolean onRenderProcessGone(WebView view, RenderProcessGoneDetail detail) {
+                int failedIndex = tabs.indexOf(tab);
+                if (failedIndex >= 0) {
+                    removeTab(failedIndex);
+                    Toast.makeText(BrowserActivity.this,
+                            R.string.browser_renderer_restarted, Toast.LENGTH_LONG).show();
+                }
+                return true;
             }
         });
         webView.setWebChromeClient(new WebChromeClient() {
@@ -841,17 +881,50 @@ public class BrowserActivity extends ThemedActivity {
     }
 
     private WebView getCurrentWebView() {
+        if (currentTab < 0 || currentTab >= tabs.size()) {
+            return null;
+        }
         return tabs.get(currentTab).webView;
     }
 
     private void updateCurrentChrome(BrowserTab tab) {
-        if (currentTab < 0 || tabs.get(currentTab) != tab) {
+        if (currentTab < 0 || currentTab >= tabs.size() || tabs.get(currentTab) != tab) {
             return;
         }
         addressBar.setText(tab.url);
         addressBar.setSelection(addressBar.length());
         ((TextView) findViewById(R.id.browser_tab_count))
                 .setText(String.valueOf(tabs.size()));
+        findViewById(R.id.browser_back).setEnabled(tab.webView.canGoBack());
+        findViewById(R.id.browser_forward).setEnabled(tab.webView.canGoForward());
+    }
+
+    private void showZoomControls() {
+        final String[] options = new String[] {
+                getString(R.string.browser_zoom_in),
+                getString(R.string.browser_zoom_out),
+                getString(R.string.browser_zoom_reset)
+        };
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.browser_zoom)
+                .setItems(options, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        WebView view = getCurrentWebView();
+                        if (view == null) {
+                            return;
+                        }
+                        if (which == 0) {
+                            view.zoomIn();
+                        } else if (which == 1) {
+                            view.zoomOut();
+                        } else {
+                            view.getSettings().setTextZoom(100);
+                            view.reload();
+                        }
+                    }
+                })
+                .show();
     }
 
     private void navigate(String value) {
@@ -867,7 +940,10 @@ public class BrowserActivity extends ThemedActivity {
                 query = "https://" + query;
             }
         }
-        loadLinkInsideApp(getCurrentWebView(), query);
+        WebView view = getCurrentWebView();
+        if (view != null) {
+            loadLinkInsideApp(view, query);
+        }
     }
 
     private void showTabs() {
@@ -1022,7 +1098,12 @@ public class BrowserActivity extends ThemedActivity {
                 .apply();
         Toast.makeText(this, enabled ? R.string.browser_desktop_mode_on
                 : R.string.browser_desktop_mode_off, Toast.LENGTH_SHORT).show();
-        getCurrentWebView().reload();
+        WebView current = getCurrentWebView();
+        if (current != null) {
+            current.getSettings().setUserAgentString(
+                    enabled ? getDesktopUserAgent() : null);
+            current.reload();
+        }
     }
 
     private void returnToMasterHome() {
@@ -1065,7 +1146,10 @@ public class BrowserActivity extends ThemedActivity {
                 enabled ? R.string.browser_ad_blocker_enabled
                         : R.string.browser_ad_blocker_disabled,
                 Toast.LENGTH_SHORT).show();
-        getCurrentWebView().reload();
+        WebView current = getCurrentWebView();
+        if (current != null) {
+            current.reload();
+        }
     }
 
     private void showAutofillOnboardingIfNeeded() {
@@ -1117,7 +1201,10 @@ public class BrowserActivity extends ThemedActivity {
                         new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        getCurrentWebView().loadUrl(GMAIL_URL);
+                        WebView current = getCurrentWebView();
+                        if (current != null) {
+                            current.loadUrl(GMAIL_URL);
+                        }
                     }
                 })
                 .setNegativeButton(R.string.cancel, null)
@@ -1341,8 +1428,9 @@ public class BrowserActivity extends ThemedActivity {
 
     @Override
     public void onBackPressed() {
-        if (currentTab >= 0 && getCurrentWebView().canGoBack()) {
-            getCurrentWebView().goBack();
+        WebView current = getCurrentWebView();
+        if (current != null && current.canGoBack()) {
+            current.goBack();
             return;
         }
         if (tabs.size() > 1) {
@@ -1369,6 +1457,7 @@ public class BrowserActivity extends ThemedActivity {
 
     @Override
     protected void onDestroy() {
+        saveTabs();
         for (BrowserTab tab : tabs) {
             tab.webView.stopLoading();
             tab.webView.setWebChromeClient(null);
