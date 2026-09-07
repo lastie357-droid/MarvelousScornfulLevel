@@ -96,16 +96,12 @@ public class MessengerActivity extends ThemedActivity {
                 showInbox();
             }
         });
-        requestDefaultSmsRoleIfNeeded();
         showInbox();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (content != null) {
-            requestDefaultSmsRoleIfNeeded();
-        }
         if (content != null && activeAddress == null) {
             showInbox();
         }
@@ -184,12 +180,6 @@ public class MessengerActivity extends ThemedActivity {
             return false;
         }
         return getPackageName().equals(Telephony.Sms.getDefaultSmsPackage(this));
-    }
-
-    private void requestDefaultSmsRoleIfNeeded() {
-        if (!isDefaultSmsApp() && !defaultRoleRequestShown) {
-            requestDefaultSmsRole();
-        }
     }
 
     /**
@@ -353,7 +343,7 @@ public class MessengerActivity extends ThemedActivity {
                     grouped.get(address).count++;
                 }
             }
-        } catch (SecurityException exception) {
+        } catch (Exception exception) {
             status.setText(R.string.messenger_permission_needed);
         } finally {
             if (cursor != null) {
@@ -456,7 +446,7 @@ public class MessengerActivity extends ThemedActivity {
                 row.threadId = cursor.getString(cursor.getColumnIndex("thread_id"));
                 messages.add(row);
             }
-        } catch (SecurityException exception) {
+        } catch (Exception exception) {
             status.setText(R.string.messenger_permission_needed);
         } finally {
             if (cursor != null) {

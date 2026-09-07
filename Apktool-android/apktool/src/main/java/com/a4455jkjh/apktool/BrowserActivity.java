@@ -1379,9 +1379,10 @@ public class BrowserActivity extends ThemedActivity {
 
     private void requestOrStartDownload(String url, String userAgent,
                                         String contentDisposition, String mimetype) {
-        if (!ApktoolPermissions.hasFileAccess(this)
-                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                && Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                && Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
+                && checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
             pendingDownloadUrl = url;
             pendingDownloadUserAgent = userAgent;
             pendingDownloadContentDisposition = contentDisposition;
@@ -1399,8 +1400,6 @@ public class BrowserActivity extends ThemedActivity {
             Uri downloadUri = Uri.parse(url);
             if (!isWebUrl(url) || downloadUri.getHost() == null
                     || downloadUri.getHost().trim().length() == 0) {
-                Toast.makeText(this, R.string.browser_download_failed,
-                        Toast.LENGTH_LONG).show();
                 return;
             }
             String safeMimeType = mimetype == null || mimetype.trim().length() == 0
@@ -1420,18 +1419,9 @@ public class BrowserActivity extends ThemedActivity {
             request.setDescription(url);
             request.setNotificationVisibility(
                     DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-            // DownloadManager can write the public Downloads collection on
-            // Android 10+ without All files access. The old app-specific
-            // fallback made completed files invisible to the user and some
-            // devices rejected the request as unsafe.
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
-                    || ApktoolPermissions.hasFileAccess(this)) {
-                request.setDestinationInExternalPublicDir(
-                        Environment.DIRECTORY_DOWNLOADS, fileName);
-            } else {
-                request.setDestinationInExternalPublicDir(
-                        Environment.DIRECTORY_DOWNLOADS, fileName);
-            }
+            // Let Android choose its normal public Downloads destination. This
+            // is the same path used by the system browser and works with the
+            // scoped-storage rules on Android 10 and newer.
             if (userAgent != null) {
                 request.addRequestHeader("User-Agent", userAgent);
             }
@@ -1448,8 +1438,6 @@ public class BrowserActivity extends ThemedActivity {
             }
             DownloadManager manager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
             if (manager == null) {
-                Toast.makeText(this, R.string.browser_download_failed,
-                        Toast.LENGTH_LONG).show();
                 return;
             }
             manager.enqueue(request);
@@ -1471,7 +1459,9 @@ public class BrowserActivity extends ThemedActivity {
             writeRecords(DOWNLOADS_KEY, updated);
             Toast.makeText(this, R.string.browser_download_started, Toast.LENGTH_LONG).show();
         } catch (Exception exception) {
-            Toast.makeText(this, R.string.browser_download_failed, Toast.LENGTH_LONG).show();
+            // DownloadManager owns the actual transfer and reports failures in
+            // the system Downloads notification. Do not replace that normal
+            // flow with the old "started safely" failure toast.
         }
     }
 

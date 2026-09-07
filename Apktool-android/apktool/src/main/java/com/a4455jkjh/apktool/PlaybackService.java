@@ -114,9 +114,15 @@ public class PlaybackService extends Service {
             index = playlist.isEmpty() ? 0 : (index <= 0 ? playlist.size() - 1 : index - 1);
             playCurrent();
         } else if (ACTION_SEEK.equals(action) && player != null && intent != null) {
-            player.seekTo(Math.max(0, Math.min(intent.getIntExtra(EXTRA_POSITION, 0),
-                    player.getDuration())));
-            updatePlaybackState();
+            try {
+                int duration = player.getDuration();
+                int requestedPosition = intent.getIntExtra(EXTRA_POSITION, 0);
+                player.seekTo(Math.max(0, Math.min(requestedPosition, duration)));
+                updatePlaybackState();
+            } catch (IllegalStateException ignored) {
+                // A seek can arrive while a track is being prepared or
+                // released. Never rebuild the player for a seek request.
+            }
         } else if (ACTION_STOP.equals(action)) {
             stopPlayback();
         }

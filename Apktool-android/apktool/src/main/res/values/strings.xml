@@ -131,7 +131,6 @@
     <string name="browser_no_history">No browsing history yet.</string>
     <string name="browser_no_downloads">No downloads yet.</string>
     <string name="browser_download_started">Download started</string>
-    <string name="browser_download_failed">The download could not be started safely.</string>
     <string name="browser_download_permission_needed">Storage permission is needed for downloads on this Android version.</string>
     <string name="browser_data_cleared">Browsing history and site data cleared.</string>
     <string name="browser_download_file">Download: %1$s</string>

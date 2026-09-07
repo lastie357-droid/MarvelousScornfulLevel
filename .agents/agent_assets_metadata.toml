@@ -5,14 +5,14 @@ generated = []
 id = "-twf3vquflzuKpQ7Lbybp"
 uri = "file://Apktool-android/apktool/build/outputs/apk/debug/apktool-debug.apk"
 type = "unspecified"
-title = "Master App Apktool permissions update"
-description = "Android 16 debug APK with All files access onboarding, APK install permission onboarding, installed-app visibility, reliable file-list initialization, and safer missing-folder handling."
+title = "Master App debug APK"
+description = "Rebuilt Master App with Messenger startup, browser download, and music seek fixes."
 logical_id = "8ebe5878-9243-4502-957c-ad4e50c0734f"
-content_hash = "sha256:7bdf0ebd814efbeb5d2d7f41d0723eebc90827a563fe1980fcd0c4fc08b6603d"
-size = 11834663
-mtime_ms = 1788639888980
-storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:45a2fc1a-7344-442d-bce5-21ab4adf6497/8ebe5878-9243-4502-957c-ad4e50c0734f/e8f9133d-ff2a-4616-b81c-7912cd1f3b49"
-storage_version_token = "1788639897939364"
+content_hash = "sha256:610bb2b036669afdf58a9e897d5efe4326243741852375bce40fdb7f1665e7ae"
+size = 8571384
+mtime_ms = 1788775262809
+storage_uri = "gcs://replit-rams-assets-riker/rams/assets/repl:800bb036-22da-4171-913c-d681643ed88f/8ebe5878-9243-4502-957c-ad4e50c0734f/eab3e693-8815-4322-b20d-12c6e4e52345"
+storage_version_token = "1788775268810220"
 content_type = "application/octet-stream"
 
 [[outputs]]

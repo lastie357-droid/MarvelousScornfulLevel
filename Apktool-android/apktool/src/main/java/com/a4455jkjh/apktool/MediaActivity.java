@@ -51,6 +51,7 @@ public class MediaActivity extends ThemedActivity {
     private int repeatMode;
     private boolean galleryGrid = true;
     private boolean changingSeekBar;
+    private boolean userSeeking;
     private final BroadcastReceiver playbackReceiver = new BroadcastReceiver() {
         @Override public void onReceive(android.content.Context context, Intent intent) {
             if (!PlaybackService.ACTION_STATE.equals(intent.getAction())) {
@@ -63,7 +64,7 @@ public class MediaActivity extends ThemedActivity {
             if (title != null && title.length() > 0) {
                 nowPlaying.setText(getString(R.string.media_now_playing, title));
             }
-            if (playbackSeekBar != null && duration > 0) {
+            if (playbackSeekBar != null && duration > 0 && !userSeeking) {
                 changingSeekBar = true;
                 playbackSeekBar.setMax(duration);
                 playbackSeekBar.setProgress(Math.min(position, duration));
@@ -354,8 +355,11 @@ public class MediaActivity extends ThemedActivity {
                             + formatTime(bar.getMax()));
                 }
             }
-            @Override public void onStartTrackingTouch(SeekBar bar) {}
+            @Override public void onStartTrackingTouch(SeekBar bar) {
+                userSeeking = true;
+            }
             @Override public void onStopTrackingTouch(SeekBar bar) {
+                userSeeking = false;
                 Intent seek = new Intent(MediaActivity.this, PlaybackService.class);
                 seek.setAction(PlaybackService.ACTION_SEEK);
                 seek.putExtra(PlaybackService.EXTRA_POSITION, bar.getProgress());
