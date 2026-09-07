@@ -1,5 +1,6 @@
 package com.a4455jkjh.apktool.fragment.files;
 import android.app.AlertDialog;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -88,7 +89,23 @@ public class ApplicationItem extends ErrorTree {
 					android.widget.Toast.LENGTH_SHORT).show();
 			return;
 		}
-		context.startActivity(launch);
+		try {
+			if (context instanceof Activity) {
+				// PackageManager adds NEW_TASK to launch intents by default.
+				// Remove it when Apktool is running in an Activity so the
+				// launched app joins the current Master App task. Back then
+				// returns to the Apktool workspace instead of another task.
+				launch.setFlags(launch.getFlags() & ~Intent.FLAG_ACTIVITY_NEW_TASK);
+			} else {
+				// A non-Activity context cannot add a screen to the current
+				// task, so retain Android's required fallback.
+				launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			}
+			context.startActivity(launch);
+		} catch (Exception exception) {
+			android.widget.Toast.makeText(context, R.string.app_no_launch_activity,
+					android.widget.Toast.LENGTH_SHORT).show();
+		}
 	}
 	private static void uninstallApp(final Context context, final PackageInfo pkg,
 			final PackageManager pm) {
