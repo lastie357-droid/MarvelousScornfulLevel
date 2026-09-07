@@ -5,14 +5,14 @@ generated = []
 id = "-twf3vquflzuKpQ7Lbybp"
 uri = "file://Apktool-android/apktool/build/outputs/apk/debug/apktool-debug.apk"
 type = "unspecified"
-title = "Master App same-task app launch APK"
-description = "Updated Apktool app list launch behavior to keep launched apps in the current Master App task when Android permits."
+title = "Master App debug APK"
+description = "Successfully rebuilt APK. Generated build directories remain excluded by the existing Git ignore rules."
 logical_id = "8ebe5878-9243-4502-957c-ad4e50c0734f"
 content_hash = "sha256:93acd986b1760e6e012ae94c9943ec1f34d028f5688064ce67e97eb68759d649"
 size = 12095303
 mtime_ms = 1788778492096
-storage_uri = "gcs://replit-rams-assets-riker/rams/assets/repl:800bb036-22da-4171-913c-d681643ed88f/8ebe5878-9243-4502-957c-ad4e50c0734f/13fb25f4-5329-45bb-8d3d-23d0bd4c768c"
-storage_version_token = "1788778498299492"
+storage_uri = "gcs://replit-rams-assets-riker/rams/assets/repl:800bb036-22da-4171-913c-d681643ed88f/8ebe5878-9243-4502-957c-ad4e50c0734f/a9d39b5d-979a-4d41-9133-8804b5421d4d"
+storage_version_token = "1788778959602405"
 content_type = "application/octet-stream"
 
 [[outputs]]
