@@ -1,5 +1,4 @@
 # Built application files
-*.apk
 *.ap_
 antlr4/java
 # Files for the ART/Dalvik VM
@@ -69,3 +68,6 @@ fastlane/test_output
 fastlane/readme.m
 
 */build
+
+# Published APKs are intentionally kept outside generated build directories.
+# The build script refreshes this folder after a successful build.

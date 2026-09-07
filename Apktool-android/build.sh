@@ -99,4 +99,14 @@ shift || true
 log "Running :apktool:$TASK"
 "$GRADLE_DIR/bin/gradle" --no-daemon --stacktrace ":apktool:$TASK" "$@"
 
+if [[ "$TASK" == *assembleDebug* ]]; then
+    RELEASE_DIR="$ROOT_DIR/releases"
+    DEBUG_APK="$ROOT_DIR/apktool/build/outputs/apk/debug/apktool-debug.apk"
+    if [ -f "$DEBUG_APK" ]; then
+        mkdir -p "$RELEASE_DIR"
+        cp "$DEBUG_APK" "$RELEASE_DIR/master-app-debug.apk"
+        log "Debug APK copied to releases/master-app-debug.apk"
+    fi
+fi
+
 log "Build complete"
