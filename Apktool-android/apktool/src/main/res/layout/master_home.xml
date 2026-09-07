@@ -112,6 +112,50 @@
             android:textSize="17sp"
             android:textStyle="bold" />
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="26dp"
+            android:text="@string/master_apps"
+            android:textColor="@color/master_accent"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.1" />
+
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:columnCount="2"
+            android:useDefaultMargins="true">
+
+            <Button
+                android:id="@+id/open_messenger"
+                android:layout_width="0dp"
+                android:layout_height="112dp"
+                android:layout_columnWeight="1"
+                android:background="@drawable/master_button_secondary"
+                android:contentDescription="@string/messenger"
+                android:gravity="center"
+                android:text="@string/messenger_launcher_label"
+                android:textColor="@color/master_text"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/open_phone_dialer"
+                android:layout_width="0dp"
+                android:layout_height="112dp"
+                android:layout_columnWeight="1"
+                android:background="@drawable/master_button_secondary"
+                android:contentDescription="@string/phone_dialer"
+                android:gravity="center"
+                android:text="@string/phone_dialer_launcher_label"
+                android:textColor="@color/master_text"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </GridLayout>
+
         <Button
             android:id="@+id/set_default_browser"
             android:layout_width="match_parent"

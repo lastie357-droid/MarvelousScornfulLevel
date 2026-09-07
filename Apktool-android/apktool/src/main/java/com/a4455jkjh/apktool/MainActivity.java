@@ -43,6 +43,18 @@ public class MainActivity extends ThemedActivity {
                 startActivity(new Intent(MainActivity.this, ToolsActivity.class));
             }
         });
+        findViewById(R.id.open_messenger).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this, MessengerActivity.class));
+            }
+        });
+        findViewById(R.id.open_phone_dialer).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                openPhoneDialer();
+            }
+        });
         findViewById(R.id.set_default_browser).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -61,6 +73,16 @@ public class MainActivity extends ThemedActivity {
             openApktool(data);
         }
         requestApktoolAccess();
+    }
+
+    private void openPhoneDialer() {
+        Intent dialer = new Intent(Intent.ACTION_DIAL);
+        dialer.setPackage("com.google.android.dialer");
+        try {
+            startActivity(dialer);
+        } catch (Exception exception) {
+            Toast.makeText(this, R.string.phone_dialer_unavailable, Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override

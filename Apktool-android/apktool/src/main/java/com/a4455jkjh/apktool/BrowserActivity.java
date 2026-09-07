@@ -869,7 +869,12 @@ public class BrowserActivity extends ThemedActivity {
         }
         String scheme = getUrlScheme(url);
         if ("mailto".equalsIgnoreCase(scheme)) {
-            openExternalLink(url);
+            String address = url.substring(scheme.length() + 1);
+            int queryStart = address.indexOf('?');
+            if (queryStart >= 0) {
+                address = address.substring(0, queryStart);
+            }
+            view.loadUrl(GMAIL_URL + "/mail/u/0/?view=cm&to=" + Uri.encode(address));
             return;
         }
         if ("intent".equalsIgnoreCase(scheme)) {
@@ -885,10 +890,8 @@ public class BrowserActivity extends ThemedActivity {
                     loadLinkInsideApp(view, data.toString());
                     return;
                 }
-                openExternalIntent(intent);
-                return;
             } catch (Exception ignored) {
-                // Fall through to the normal external-link handler.
+                // The external intent is blocked when it has no web fallback.
             }
         }
         String wrappedWebUrl = extractWrappedWebUrl(url);
@@ -896,26 +899,7 @@ public class BrowserActivity extends ThemedActivity {
             loadLinkInsideApp(view, wrappedWebUrl);
             return;
         }
-        openExternalLink(url);
-    }
-
-    private void openExternalLink(String url) {
-        try {
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-            openExternalIntent(intent);
-        } catch (Exception exception) {
-            Toast.makeText(this, R.string.browser_external_link_unavailable,
-                    Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void openExternalIntent(Intent intent) {
-        try {
-            startActivity(intent);
-        } catch (Exception exception) {
-            Toast.makeText(this, R.string.browser_external_link_unavailable,
-                    Toast.LENGTH_SHORT).show();
-        }
+        Toast.makeText(this, R.string.browser_link_blocked, Toast.LENGTH_SHORT).show();
     }
 
     private boolean isWebUrl(String url) {
@@ -1089,12 +1073,16 @@ public class BrowserActivity extends ThemedActivity {
             LinearLayout card = new LinearLayout(this);
             card.setOrientation(LinearLayout.VERTICAL);
             card.setPadding(12, 10, 12, 10);
-            card.setBackgroundResource(R.drawable.browser_button);
+            card.setBackgroundResource(tabIndex == currentTab
+                    ? R.drawable.browser_tab_active : R.drawable.browser_button);
             TextView title = new TextView(this);
             title.setText((i + 1) + "  "
                     + (tab.title.length() == 0 ? getString(R.string.browser) : tab.title));
-            title.setTextColor(getResources().getColor(R.color.master_text));
+            title.setTextColor(getResources().getColor(tabIndex == currentTab
+                    ? R.color.master_accent : R.color.master_text));
             title.setTextSize(15);
+            title.setTypeface(null, tabIndex == currentTab
+                    ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
             title.setMaxLines(2);
             card.addView(title, new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));

@@ -1,3 +1,4 @@
 - [Browser password autofill](browser-password-autofill.md) — use Android Autofill for device password providers; Chrome/Google password sync is not exposed as a third-party browser API.
 - [Embedded browser engine](browser-engine-constraints.md) — Master App relies on Android System WebView; add browser-layer features instead of inflating the APK with unused Chromium files.
 - [Android storage access](apktool-storage-permissions.md) — API 30+ file browsing requires All files access; WRITE_EXTERNAL_STORAGE alone leaves the Apktool workspace uninitialized.
+- [SMS role requirements](messenger-sms-role.md) — reading is permission-gated, while deleting and complete SMS handling require the app to hold Android’s default SMS role.
