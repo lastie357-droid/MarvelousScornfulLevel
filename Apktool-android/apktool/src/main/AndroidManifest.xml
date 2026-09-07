@@ -75,6 +75,11 @@
 			</intent-filter>
 		</activity>
 		<activity
+			android:name=".ApplicationsActivity"
+			android:exported="false"
+			android:label="@string/apps"
+			android:screenOrientation="unspecified"/>
+		<activity
 			android:name=".BrowserActivity"
 			android:exported="true"
 			android:launchMode="singleTask"

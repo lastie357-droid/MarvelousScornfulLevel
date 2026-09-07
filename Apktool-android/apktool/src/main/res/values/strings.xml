@@ -170,6 +170,7 @@
     <string name="apps_sort_name">Name</string>
     <string name="apps_sort_recent">Last installed</string>
     <string name="return_master_home">Return to Master Home</string>
+    <string name="return_apktool">Back to Apktool</string>
 	<string name="details">Details</string>
     <string name="launch_app">Launch app</string>
     <string name="uninstall_app">Uninstall</string>

@@ -69,7 +69,7 @@ public class ApplicationItem extends ErrorTree {
 				}
 			});
 	}
-	protected void decode(Context ctx, File file, int id, String name) {
+	protected static void decode(Context ctx, File file, int id, String name) {
 		switch (id) {
 			case R.id.decompile_all:
 				new DecodeTask(ctx, null, 3, name).execute(file);
@@ -81,6 +81,40 @@ public class ApplicationItem extends ErrorTree {
 				new DecodeTask(ctx, null, 1, name).execute(file);
 				break;
 		}
+	}
+
+	public static void showActions(View anchor, final PackageInfo pkg,
+			final PackageManager pm, final boolean isSystem) {
+		PopupUtils.show(anchor, R.menu.app, new PopupUtils.Callback() {
+			@Override
+			public void call(Context ctx, int id) {
+				File file = new File(pkg.applicationInfo.sourceDir);
+				switch (id) {
+					case R.id.details:
+						showAppDetails(ctx, pkg, pm);
+						break;
+					case R.id.launch_app:
+						launchApp(ctx, pkg, pm);
+						break;
+					case R.id.uninstall_app:
+						if (isSystem || (pkg.applicationInfo.flags
+								& ApplicationInfo.FLAG_SYSTEM) != 0) {
+							android.widget.Toast.makeText(ctx,
+									R.string.app_system_uninstall_unavailable,
+									android.widget.Toast.LENGTH_SHORT).show();
+						} else {
+							uninstallApp(ctx, pkg, pm);
+						}
+						break;
+					case R.id.import_framework:
+						new ImportFrameworkTask(ctx).execute(file);
+						break;
+					default:
+						decode(ctx, file, id, pkg.applicationInfo.loadLabel(pm) + ".apk");
+						break;
+				}
+			}
+		});
 	}
 	private static void launchApp(Context context, PackageInfo pkg, PackageManager pm) {
 		Intent launch = pm.getLaunchIntentForPackage(pkg.packageName);

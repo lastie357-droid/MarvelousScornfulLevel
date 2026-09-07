@@ -7,9 +7,11 @@ import android.support.design.widget.TabLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.content.Intent;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager.widget.ViewPager;
 import com.a4455jkjh.apktool.ApktoolActivity;
+import com.a4455jkjh.apktool.ApplicationsActivity;
 import com.a4455jkjh.apktool.ApktoolPermissions;
 import com.a4455jkjh.apktool.R;
 import com.a4455jkjh.apktool.fragment.files.ErrorTree;
@@ -21,8 +23,13 @@ public class FilesFragment extends Fragment {
 	private ViewPager files_pager;
 	private FilesPagerAdapter adapter;
 	private boolean initialized;
+	private boolean openingApplications;
 
 	public void setPage(int idx) {
+		if (idx == 1) {
+			openApplicationsPage();
+			return;
+		}
 		files_pager.setCurrentItem(idx);
 	}
 
@@ -47,6 +54,14 @@ public class FilesFragment extends Fragment {
 		files_pager = view.findViewById(R.id.files_pager);
 		TabLayout tab = view.findViewById(R.id.tab);
 		tab.setupWithViewPager(files_pager, true);
+		files_pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+			@Override
+			public void onPageSelected(int position) {
+				if (position == 1) {
+					openApplicationsPage();
+				}
+			}
+		});
 	}
 
 	@Override
@@ -67,12 +82,36 @@ public class FilesFragment extends Fragment {
 	@Override
 	public void onResume() {
 		super.onResume();
+		if (openingApplications) {
+			openingApplications = false;
+		}
 		if (adapter != null && !initialized
 				&& ApktoolPermissions.hasFileAccess(getActivity())) {
 			initialized = true;
 			init(null);
 		} else if (adapter != null && initialized) {
 			adapter.refreshApplications();
+		}
+	}
+
+	private void openApplicationsPage() {
+		if (openingApplications || getActivity() == null) {
+			return;
+		}
+		openingApplications = true;
+		if (getActivity() instanceof ApktoolActivity) {
+			((ApktoolActivity) getActivity()).dismissFiles();
+		}
+		startActivity(new Intent(getActivity(), ApplicationsActivity.class));
+		if (files_pager != null) {
+			files_pager.post(new Runnable() {
+				@Override
+				public void run() {
+					if (files_pager != null && files_pager.getCurrentItem() == 1) {
+						files_pager.setCurrentItem(0, false);
+					}
+				}
+			});
 		}
 	}
 	private void init(Bundle savedInstanceState) {
