@@ -23,7 +23,7 @@
             android:textColor="@color/master_text"
             android:textSize="24sp" />
 
-        <EditText
+        <AutoCompleteTextView
             android:id="@+id/browser_address"
             android:layout_width="0dp"
             android:layout_height="42dp"
@@ -40,6 +40,17 @@
             android:textColor="@color/master_text"
             android:textColorHint="@color/master_muted"
             android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/browser_refresh"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_marginLeft="2dp"
+            android:background="@drawable/browser_button"
+            android:contentDescription="@string/browser_refresh"
+            android:text="↻"
+            android:textColor="@color/master_text"
+            android:textSize="22sp" />
 
         <Button
             android:id="@+id/browser_new_tab"

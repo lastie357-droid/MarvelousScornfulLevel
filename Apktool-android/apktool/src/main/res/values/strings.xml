@@ -21,6 +21,7 @@
     <string name="browser_menu">Menu</string>
     <string name="browser_back">Previous page</string>
     <string name="browser_forward">Next page</string>
+    <string name="browser_refresh">Refresh page</string>
     <string name="browser_zoom">Zoom and text size</string>
     <string name="browser_zoom_in">Zoom in</string>
     <string name="browser_zoom_out">Zoom out</string>
@@ -95,6 +96,7 @@
     <string name="browser_data_cleared">Browsing history and site data cleared.</string>
     <string name="browser_download_file">Download: %1$s</string>
     <string name="browser_link_blocked">This link type is blocked to keep navigation inside Master App.</string>
+    <string name="browser_external_link_unavailable">No Android app can open this link.</string>
     <string name="all_files_saved">All files saved!</string>
 
     <string name="jks">Keystore(JKS)</string>

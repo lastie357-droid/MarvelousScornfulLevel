@@ -35,6 +35,7 @@ import android.webkit.WebViewClient;
 import android.webkit.URLUtil;
 import android.webkit.MimeTypeMap;
 import android.widget.Button;
+import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.GridLayout;
@@ -73,8 +74,12 @@ public class BrowserActivity extends ThemedActivity {
     private static final int WEB_PERMISSION_REQUEST_CODE = 701;
     private static final int STORAGE_PERMISSION_REQUEST_CODE = 702;
     private static final int DOWNLOAD_PERMISSION_REQUEST_CODE = 703;
+    private static final int FILE_CHOOSER_REQUEST_CODE = 704;
     private static final int MAX_HISTORY = 100;
     private static final int MAX_DOWNLOADS = 50;
+    private static final int DEFAULT_TEXT_ZOOM = 85;
+    private static final int MIN_TEXT_ZOOM = 50;
+    private static final int MAX_TEXT_ZOOM = 200;
 
     private final ArrayList<BrowserTab> tabs = new ArrayList<BrowserTab>();
     private EditText addressBar;
@@ -132,6 +137,29 @@ public class BrowserActivity extends ThemedActivity {
 
         addressBar = findViewById(R.id.browser_address);
         webViewContainer = findViewById(R.id.browser_webview_container);
+        AutoCompleteTextView addressSuggestions =
+                (AutoCompleteTextView) findViewById(R.id.browser_address);
+        addressSuggestions.setThreshold(1);
+        addressSuggestions.setAdapter(createHistorySuggestions());
+        addressSuggestions.setSelectAllOnFocus(true);
+        addressSuggestions.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean hasFocus) {
+                if (hasFocus) {
+                    ((AutoCompleteTextView) view).showDropDown();
+                }
+            }
+        });
+        addressSuggestions.setOnItemClickListener(
+                new android.widget.AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(android.widget.AdapterView<?> parent, View view,
+                                            int position, long id) {
+                        String selected = String.valueOf(parent.getItemAtPosition(position));
+                        int separator = selected.indexOf('\n');
+                        navigate(separator >= 0 ? selected.substring(separator + 1) : selected);
+                    }
+                });
 
         findViewById(R.id.browser_home).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -175,6 +203,15 @@ public class BrowserActivity extends ThemedActivity {
                 WebView current = getCurrentWebView();
                 if (current != null && current.canGoForward()) {
                     current.goForward();
+                }
+            }
+        });
+        findViewById(R.id.browser_refresh).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                WebView current = getCurrentWebView();
+                if (current != null) {
+                    current.reload();
                 }
             }
         });
@@ -252,6 +289,8 @@ public class BrowserActivity extends ThemedActivity {
         settings.setSupportMultipleWindows(true);
         settings.setUseWideViewPort(true);
         settings.setLoadWithOverviewMode(true);
+        settings.setTextZoom(DEFAULT_TEXT_ZOOM);
+        webView.setInitialScale(75);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         }
@@ -388,10 +427,11 @@ public class BrowserActivity extends ThemedActivity {
     }
 
     private String getDesktopUserAgent() {
-        String userAgent = WebSettings.getDefaultUserAgent(this);
-        userAgent = userAgent.replace("; wv", "");
-        userAgent = userAgent.replace("Version/4.0 ", "");
-        return userAgent.replace(" Mobile", "");
+        // Do not only remove "Mobile" from the Android WebView UA. Many sites
+        // still classify that UA as a phone because it contains Android.
+        return "Mozilla/5.0 (X11; Linux x86_64) "
+                + "AppleWebKit/537.36 (KHTML, like Gecko) "
+                + "Chrome/131.0.0.0 Safari/537.36";
     }
 
     private void improvePasswordFieldAutofill(final WebView webView) {
@@ -560,14 +600,45 @@ public class BrowserActivity extends ThemedActivity {
         }
         pendingFileCallback = callback;
         pendingFileChooserParams = params;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                && checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[] {Manifest.permission.READ_EXTERNAL_STORAGE},
-                    STORAGE_PERMISSION_REQUEST_CODE);
-            return;
+        try {
+            // Use Android's document provider so the user can pick from Files,
+            // Drive, photos, and other installed providers. Do not convert the
+            // result into file://; WebView upload forms need the granted
+            // content:// URI returned by the system picker.
+            Intent picker = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            picker.addCategory(Intent.CATEGORY_OPENABLE);
+            picker.setType(resolveFileChooserType(params));
+            if (params != null && params.getAcceptTypes() != null
+                    && params.getAcceptTypes().length > 1) {
+                picker.putExtra(Intent.EXTRA_MIME_TYPES, params.getAcceptTypes());
+            }
+            if (params != null
+                    && params.getMode() == WebChromeClient.FileChooserParams.MODE_OPEN_MULTIPLE) {
+                picker.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+            }
+            picker.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+            startActivityForResult(picker, FILE_CHOOSER_REQUEST_CODE);
+        } catch (Exception exception) {
+            pendingFileCallback = null;
+            pendingFileChooserParams = null;
+            callback.onReceiveValue(null);
+            Toast.makeText(this, R.string.browser_file_picker_unavailable,
+                    Toast.LENGTH_SHORT).show();
         }
-        showInternalFilePicker();
+    }
+
+    private String resolveFileChooserType(WebChromeClient.FileChooserParams params) {
+        if (params == null || params.getAcceptTypes() == null) {
+            return "*/*";
+        }
+        String[] acceptTypes = params.getAcceptTypes();
+        for (String acceptType : acceptTypes) {
+            if (acceptType != null && acceptType.trim().length() > 0) {
+                return acceptType.trim();
+            }
+        }
+        return "*/*";
     }
 
     private void showInternalFilePicker() {
@@ -798,12 +869,7 @@ public class BrowserActivity extends ThemedActivity {
         }
         String scheme = getUrlScheme(url);
         if ("mailto".equalsIgnoreCase(scheme)) {
-            String address = url.substring(scheme.length() + 1);
-            int queryStart = address.indexOf('?');
-            if (queryStart >= 0) {
-                address = address.substring(0, queryStart);
-            }
-            view.loadUrl(GMAIL_URL + "/mail/u/0/?view=cm&to=" + Uri.encode(address));
+            openExternalLink(url);
             return;
         }
         if ("intent".equalsIgnoreCase(scheme)) {
@@ -819,8 +885,10 @@ public class BrowserActivity extends ThemedActivity {
                     loadLinkInsideApp(view, data.toString());
                     return;
                 }
+                openExternalIntent(intent);
+                return;
             } catch (Exception ignored) {
-                // The URL is intentionally blocked when no web fallback exists.
+                // Fall through to the normal external-link handler.
             }
         }
         String wrappedWebUrl = extractWrappedWebUrl(url);
@@ -828,7 +896,26 @@ public class BrowserActivity extends ThemedActivity {
             loadLinkInsideApp(view, wrappedWebUrl);
             return;
         }
-        Toast.makeText(this, R.string.browser_link_blocked, Toast.LENGTH_SHORT).show();
+        openExternalLink(url);
+    }
+
+    private void openExternalLink(String url) {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            openExternalIntent(intent);
+        } catch (Exception exception) {
+            Toast.makeText(this, R.string.browser_external_link_unavailable,
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void openExternalIntent(Intent intent) {
+        try {
+            startActivity(intent);
+        } catch (Exception exception) {
+            Toast.makeText(this, R.string.browser_external_link_unavailable,
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 
     private boolean isWebUrl(String url) {
@@ -897,7 +984,10 @@ public class BrowserActivity extends ThemedActivity {
             return;
         }
         addressBar.setText(tab.url);
-        addressBar.setSelection(addressBar.length());
+        if (!addressBar.hasFocus()) {
+            addressBar.setSelection(0, addressBar.length());
+        }
+        refreshAddressSuggestions();
         ((TextView) findViewById(R.id.browser_tab_count))
                 .setText(String.valueOf(tabs.size()));
         findViewById(R.id.browser_back).setEnabled(tab.webView.canGoBack());
@@ -920,11 +1010,15 @@ public class BrowserActivity extends ThemedActivity {
                             return;
                         }
                         if (which == 0) {
-                            view.zoomIn();
+                            int zoom = view.getSettings().getTextZoom();
+                            view.getSettings().setTextZoom(
+                                    Math.min(MAX_TEXT_ZOOM, zoom + 10));
                         } else if (which == 1) {
-                            view.zoomOut();
+                            int zoom = view.getSettings().getTextZoom();
+                            view.getSettings().setTextZoom(
+                                    Math.max(MIN_TEXT_ZOOM, zoom - 10));
                         } else {
-                            view.getSettings().setTextZoom(100);
+                            view.getSettings().setTextZoom(DEFAULT_TEXT_ZOOM);
                             view.reload();
                         }
                     }
@@ -948,6 +1042,29 @@ public class BrowserActivity extends ThemedActivity {
         WebView view = getCurrentWebView();
         if (view != null) {
             loadLinkInsideApp(view, query);
+        }
+    }
+
+    private android.widget.ArrayAdapter<String> createHistorySuggestions() {
+        ArrayList<String> labels = new ArrayList<String>();
+        ArrayList<BrowserRecord> records = readRecords(HISTORY_KEY);
+        for (BrowserRecord record : records) {
+            String label = record.title == null || record.title.length() == 0
+                    ? record.url
+                    : record.title + "\n" + record.url;
+            if (label.length() > 0 && !labels.contains(label)) {
+                labels.add(label);
+            }
+        }
+        return new android.widget.ArrayAdapter<String>(
+                this, android.R.layout.simple_dropdown_item_1line, labels);
+    }
+
+    private void refreshAddressSuggestions() {
+        AutoCompleteTextView suggestions =
+                (AutoCompleteTextView) findViewById(R.id.browser_address);
+        if (suggestions != null) {
+            suggestions.setAdapter(createHistorySuggestions());
         }
     }
 
@@ -1234,6 +1351,7 @@ public class BrowserActivity extends ThemedActivity {
             }
         }
         writeRecords(HISTORY_KEY, updated);
+        refreshAddressSuggestions();
     }
 
     private void showHistory() {
@@ -1391,6 +1509,40 @@ public class BrowserActivity extends ThemedActivity {
                 .setMessage(message)
                 .setPositiveButton(R.string.ok, null)
                 .show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode != FILE_CHOOSER_REQUEST_CODE) {
+            return;
+        }
+        ValueCallback<Uri[]> callback = pendingFileCallback;
+        pendingFileCallback = null;
+        pendingFileChooserParams = null;
+        if (callback == null) {
+            return;
+        }
+
+        Uri[] results = null;
+        if (resultCode == RESULT_OK && data != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                results = WebChromeClient.FileChooserParams.parseResult(resultCode, data);
+            } else if (data.getData() != null) {
+                results = new Uri[] {data.getData()};
+            }
+            if (results != null) {
+                for (Uri result : results) {
+                    try {
+                        getContentResolver().takePersistableUriPermission(
+                                result, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    } catch (Exception ignored) {
+                        // Some document providers grant only a temporary read URI.
+                    }
+                }
+            }
+        }
+        callback.onReceiveValue(results);
     }
 
     @Override
