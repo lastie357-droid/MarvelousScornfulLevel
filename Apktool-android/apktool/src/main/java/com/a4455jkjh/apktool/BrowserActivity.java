@@ -256,7 +256,10 @@ public class BrowserActivity extends ThemedActivity {
         setIntent(intent);
         Uri incoming = intent.getData();
         if (incoming != null) {
-            navigate(incoming.toString());
+            // BrowserActivity is a singleTask default-browser entry point.
+            // Android delivers later external links through onNewIntent, so
+            // preserve the current page and open the link in a fresh tab.
+            openIncomingUrl(incoming.toString());
         }
     }
 
@@ -414,12 +417,27 @@ public class BrowserActivity extends ThemedActivity {
                 // Attach the popup transport before starting any navigation.
                 // Loading Home first races the popup URL and can kill the
                 // renderer on pages such as Gmail.
-                BrowserTab newTab = createTab(null, false);
-                WebView.WebViewTransport transport =
-                        (WebView.WebViewTransport) resultMsg.obj;
-                transport.setWebView(newTab.webView);
-                resultMsg.sendToTarget();
-                return true;
+                if (resultMsg == null || !(resultMsg.obj instanceof WebView.WebViewTransport)) {
+                    // A malformed popup request must not take down the browser.
+                    return false;
+                }
+                BrowserTab newTab = null;
+                try {
+                    newTab = createTab(null, false);
+                    WebView.WebViewTransport transport =
+                            (WebView.WebViewTransport) resultMsg.obj;
+                    transport.setWebView(newTab.webView);
+                    resultMsg.sendToTarget();
+                    return true;
+                } catch (Exception exception) {
+                    if (newTab != null) {
+                        int tabIndex = tabs.indexOf(newTab);
+                        if (tabIndex >= 0) {
+                            removeTab(tabIndex);
+                        }
+                    }
+                    return false;
+                }
             }
         });
         webView.setDownloadListener(new DownloadListener() {
@@ -909,6 +927,21 @@ public class BrowserActivity extends ThemedActivity {
         String wrappedWebUrl = extractWrappedWebUrl(url);
         if (wrappedWebUrl != null) {
             loadLinkInsideApp(view, wrappedWebUrl);
+            return;
+        }
+        Toast.makeText(this, R.string.browser_link_blocked, Toast.LENGTH_SHORT).show();
+    }
+
+    private void openIncomingUrl(String url) {
+        if (url == null || url.trim().length() == 0) {
+            return;
+        }
+        String incomingUrl = url.trim();
+        if (isWebUrl(incomingUrl) || isFileUrl(incomingUrl)
+                || "intent".equalsIgnoreCase(getUrlScheme(incomingUrl))
+                || "mailto".equalsIgnoreCase(getUrlScheme(incomingUrl))
+                || extractWrappedWebUrl(incomingUrl) != null) {
+            createTab(incomingUrl);
             return;
         }
         Toast.makeText(this, R.string.browser_link_blocked, Toast.LENGTH_SHORT).show();

@@ -5,14 +5,14 @@ generated = []
 id = "-twf3vquflzuKpQ7Lbybp"
 uri = "file://Apktool-android/apktool/build/outputs/apk/debug/apktool-debug.apk"
 type = "unspecified"
-title = "Master App debug APK"
-description = "Rebuilt Master App with Messenger startup, browser download, and music seek fixes."
+title = "Master App external-link fix APK"
+description = "Updated Master App with protected popup handling and automatic new tabs for incoming web links."
 logical_id = "8ebe5878-9243-4502-957c-ad4e50c0734f"
-content_hash = "sha256:610bb2b036669afdf58a9e897d5efe4326243741852375bce40fdb7f1665e7ae"
-size = 8571384
-mtime_ms = 1788775262809
-storage_uri = "gcs://replit-rams-assets-riker/rams/assets/repl:800bb036-22da-4171-913c-d681643ed88f/8ebe5878-9243-4502-957c-ad4e50c0734f/eab3e693-8815-4322-b20d-12c6e4e52345"
-storage_version_token = "1788775268810220"
+content_hash = "sha256:c10116b4aef8e3bcf587b26140a26718729181064520af21357844450fc0892d"
+size = 12095557
+mtime_ms = 1788776338653
+storage_uri = "gcs://replit-rams-assets-riker/rams/assets/repl:800bb036-22da-4171-913c-d681643ed88f/8ebe5878-9243-4502-957c-ad4e50c0734f/d946214d-afd3-4e55-9d10-20fd22461561"
+storage_version_token = "1788776346350215"
 content_type = "application/octet-stream"
 
 [[outputs]]
