@@ -13,6 +13,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.provider.Telephony;
 import android.telephony.SmsManager;
 import android.view.Gravity;
 import android.view.View;
@@ -48,6 +49,7 @@ public class MessengerActivity extends ThemedActivity {
     private LinearLayout content;
     private TextView status;
     private String activeAddress;
+    private boolean defaultRoleRequestShown;
 
     private static class MessageRow {
         String id;
@@ -93,12 +95,16 @@ public class MessengerActivity extends ThemedActivity {
                 showInbox();
             }
         });
+        requestDefaultSmsRoleIfNeeded();
         showInbox();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        if (content != null) {
+            requestDefaultSmsRoleIfNeeded();
+        }
         if (content != null && activeAddress == null) {
             showInbox();
         }
@@ -138,19 +144,50 @@ public class MessengerActivity extends ThemedActivity {
     }
 
     private void requestDefaultSmsRole() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            showMessage(R.string.messenger_default_title,
-                    R.string.messenger_default_older_android);
-            return;
-        }
-        RoleManager roles = (RoleManager) getSystemService(ROLE_SERVICE);
-        if (roles != null && roles.isRoleAvailable(RoleManager.ROLE_SMS)
-                && !roles.isRoleHeld(RoleManager.ROLE_SMS)) {
-            startActivityForResult(roles.createRequestRoleIntent(RoleManager.ROLE_SMS),
-                    SMS_ROLE_REQUEST);
-        } else {
+        if (isDefaultSmsApp()) {
             showMessage(R.string.messenger_default_title,
                     R.string.messenger_default_already);
+            return;
+        }
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                RoleManager roles = (RoleManager) getSystemService(ROLE_SERVICE);
+                if (roles != null && roles.isRoleAvailable(RoleManager.ROLE_SMS)) {
+                    defaultRoleRequestShown = true;
+                    startActivityForResult(roles.createRequestRoleIntent(RoleManager.ROLE_SMS),
+                            SMS_ROLE_REQUEST);
+                    return;
+                }
+            } else {
+                Intent legacy = new Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT);
+                legacy.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, getPackageName());
+                defaultRoleRequestShown = true;
+                startActivityForResult(legacy, SMS_ROLE_REQUEST);
+                return;
+            }
+        } catch (Exception ignored) {
+            // Fall through to a useful explanation instead of silently doing
+            // nothing on OEMs that do not expose the role UI.
+        }
+        showMessage(R.string.messenger_default_title,
+                R.string.messenger_default_unavailable);
+    }
+
+    private boolean isDefaultSmsApp() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            RoleManager roles = (RoleManager) getSystemService(ROLE_SERVICE);
+            return roles != null && roles.isRoleAvailable(RoleManager.ROLE_SMS)
+                    && roles.isRoleHeld(RoleManager.ROLE_SMS);
+        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+            return false;
+        }
+        return getPackageName().equals(Telephony.Sms.getDefaultSmsPackage(this));
+    }
+
+    private void requestDefaultSmsRoleIfNeeded() {
+        if (!isDefaultSmsApp() && !defaultRoleRequestShown) {
+            requestDefaultSmsRole();
         }
     }
 
@@ -175,16 +212,29 @@ public class MessengerActivity extends ThemedActivity {
                 continue;
             }
             LinearLayout card = card();
+            LinearLayout summary = new LinearLayout(this);
+            summary.setGravity(Gravity.CENTER_VERTICAL);
+            String address = conversation.address == null ? "?" : conversation.address;
+            TextView avatar = label(address.substring(0, 1).toUpperCase(), 18, true);
+            avatar.setGravity(Gravity.CENTER);
+            avatar.setBackgroundResource(R.drawable.master_button_secondary);
+            summary.addView(avatar, new LinearLayout.LayoutParams(48, 48));
+            LinearLayout details = new LinearLayout(this);
+            details.setOrientation(LinearLayout.VERTICAL);
+            details.setPadding(12, 0, 0, 0);
             TextView title = label(conversation.address, 18, true);
-            card.addView(title);
+            details.addView(title);
             TextView preview = label(
                     conversation.latest.body == null ? "" : conversation.latest.body,
                     14, false);
             preview.setMaxLines(2);
-            card.addView(preview);
+            details.addView(preview);
             TextView meta = label(DateFormat.getDateTimeInstance().format(
                     new Date(conversation.latest.date)), 11, false);
-            card.addView(meta);
+            details.addView(meta);
+            summary.addView(details, new LinearLayout.LayoutParams(0,
+                    ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+            card.addView(summary);
             card.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -312,15 +362,21 @@ public class MessengerActivity extends ThemedActivity {
         content.addView(actions);
 
         for (MessageRow row : readMessages(address)) {
-            TextView message = label((row.type == 2 ? "You: " : "")
-                    + (row.body == null ? "" : row.body) + "\n"
+            LinearLayout bubbleRow = new LinearLayout(this);
+            bubbleRow.setGravity(row.type == 2 ? Gravity.RIGHT : Gravity.LEFT);
+            TextView message = label((row.body == null ? "" : row.body) + "\n"
                     + DateFormat.getDateTimeInstance().format(new Date(row.date)), 15, false);
             message.setPadding(14, 12, 14, 12);
-            message.setBackgroundResource(R.drawable.master_button_secondary);
+            message.setBackgroundResource(row.type == 2
+                    ? R.drawable.master_button : R.drawable.master_button_secondary);
+            LinearLayout.LayoutParams bubbleParams = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            bubbleParams.setMargins(0, 8, 0, 0);
+            bubbleRow.addView(message, bubbleParams);
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             params.setMargins(0, 8, 0, 0);
-            content.addView(message, params);
+            content.addView(bubbleRow, params);
         }
 
         Button reply = button(R.string.messenger_reply);

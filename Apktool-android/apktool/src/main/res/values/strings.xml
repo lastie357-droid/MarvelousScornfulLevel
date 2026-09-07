@@ -38,6 +38,8 @@
     <string name="messenger_default_title">Default SMS app</string>
     <string name="messenger_default_older_android">Android will manage SMS permissions on this version.</string>
     <string name="messenger_default_already">Master App is already the default SMS app, or the role is unavailable.</string>
+    <string name="messenger_default_needed">Set Master App as the default SMS app to send and manage messages.</string>
+    <string name="messenger_default_unavailable">This device did not provide the Android default SMS app chooser.</string>
     <string name="messenger_back">Back</string>
     <string name="master_home_message">Master App stays open as your home screen</string>
     <string name="master_home_note">This app can act as your home app and receive web links. Choose “Set as default browser” to select it in Android system settings.</string>
@@ -66,6 +68,8 @@
     <string name="media_music">Music</string>
     <string name="media_images">Images</string>
     <string name="media_videos">Videos</string>
+    <string name="media_grid">Grid</string>
+    <string name="media_list">List</string>
     <string name="media_play">Play</string>
     <string name="media_open">Open</string>
     <string name="media_no_music">No music files found.</string>

@@ -261,6 +261,10 @@ public class BrowserActivity extends ThemedActivity {
     }
 
     private BrowserTab createTab(String initialUrl) {
+        return createTab(initialUrl, true);
+    }
+
+    private BrowserTab createTab(String initialUrl, boolean loadInitialUrl) {
         final BrowserTab tab = new BrowserTab();
         tab.webView = buildWebView(tab);
         tabs.add(tab);
@@ -268,7 +272,9 @@ public class BrowserActivity extends ThemedActivity {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
         switchToTab(tabs.size() - 1);
-        loadLinkInsideApp(tab.webView, initialUrl == null ? HOME_URL : initialUrl);
+        if (loadInitialUrl) {
+            loadLinkInsideApp(tab.webView, initialUrl == null ? HOME_URL : initialUrl);
+        }
         return tab;
     }
 
@@ -281,7 +287,10 @@ public class BrowserActivity extends ThemedActivity {
         settings.setBuiltInZoomControls(true);
         settings.setDisplayZoomControls(false);
         settings.setLoadsImagesAutomatically(true);
-        settings.setJavaScriptCanOpenWindowsAutomatically(false);
+        // Gmail and similar sites use target=_blank/window.open for message
+        // links. WebView must be allowed to report those windows to
+        // onCreateWindow() instead of dropping or crashing the navigation.
+        settings.setJavaScriptCanOpenWindowsAutomatically(true);
         settings.setDatabaseEnabled(true);
         settings.setAllowContentAccess(true);
         settings.setAllowFileAccess(true);
@@ -402,7 +411,10 @@ public class BrowserActivity extends ThemedActivity {
             @Override
             public boolean onCreateWindow(
                     WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
-                BrowserTab newTab = createTab(null);
+                // Attach the popup transport before starting any navigation.
+                // Loading Home first races the popup URL and can kill the
+                // renderer on pages such as Gmail.
+                BrowserTab newTab = createTab(null, false);
                 WebView.WebViewTransport transport =
                         (WebView.WebViewTransport) resultMsg.obj;
                 transport.setWebView(newTab.webView);
@@ -1218,9 +1230,11 @@ public class BrowserActivity extends ThemedActivity {
     private void returnToMasterHome() {
         saveTabs();
         Intent intent = new Intent(this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        // Reorder the existing home activity instead of clearing the browser
+        // from the back stack. Its WebViews must remain alive while the user
+        // visits Home and returns to the browser.
+        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(intent);
-        finish();
     }
 
     private void removeTab(int index) {
@@ -1383,13 +1397,21 @@ public class BrowserActivity extends ThemedActivity {
                                String mimetype) {
         try {
             Uri downloadUri = Uri.parse(url);
-            if (!isWebUrl(url) || downloadUri.getHost() == null) {
+            if (!isWebUrl(url) || downloadUri.getHost() == null
+                    || downloadUri.getHost().trim().length() == 0) {
                 Toast.makeText(this, R.string.browser_download_failed,
                         Toast.LENGTH_LONG).show();
                 return;
             }
             String safeMimeType = mimetype == null || mimetype.trim().length() == 0
-                    ? "application/octet-stream" : mimetype;
+                    ? "application/octet-stream" : mimetype.trim();
+            int mimeParameters = safeMimeType.indexOf(';');
+            if (mimeParameters >= 0) {
+                safeMimeType = safeMimeType.substring(0, mimeParameters).trim();
+            }
+            if (safeMimeType.length() == 0) {
+                safeMimeType = "application/octet-stream";
+            }
             String fileName = safeDownloadFileName(
                     URLUtil.guessFileName(url, contentDisposition, safeMimeType));
             DownloadManager.Request request = new DownloadManager.Request(downloadUri);
@@ -1398,19 +1420,31 @@ public class BrowserActivity extends ThemedActivity {
             request.setDescription(url);
             request.setNotificationVisibility(
                     DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-            if (ApktoolPermissions.hasFileAccess(this)) {
+            // DownloadManager can write the public Downloads collection on
+            // Android 10+ without All files access. The old app-specific
+            // fallback made completed files invisible to the user and some
+            // devices rejected the request as unsafe.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+                    || ApktoolPermissions.hasFileAccess(this)) {
                 request.setDestinationInExternalPublicDir(
                         Environment.DIRECTORY_DOWNLOADS, fileName);
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                // Safe fallback if the user has not granted broad file access.
-                request.setDestinationInExternalFilesDir(
-                        this, Environment.DIRECTORY_DOWNLOADS, fileName);
             } else {
                 request.setDestinationInExternalPublicDir(
                         Environment.DIRECTORY_DOWNLOADS, fileName);
             }
             if (userAgent != null) {
                 request.addRequestHeader("User-Agent", userAgent);
+            }
+            WebView current = getCurrentWebView();
+            if (current != null) {
+                String cookie = CookieManager.getInstance().getCookie(url);
+                if (cookie != null && cookie.length() > 0) {
+                    request.addRequestHeader("Cookie", cookie);
+                }
+                String referer = current.getUrl();
+                if (referer != null && isWebUrl(referer)) {
+                    request.addRequestHeader("Referer", referer);
+                }
             }
             DownloadManager manager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
             if (manager == null) {
