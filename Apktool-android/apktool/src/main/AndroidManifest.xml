@@ -21,6 +21,7 @@
 	<uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
 <uses-permission android:name="android.permission.READ_SMS"/>
 <uses-permission android:name="android.permission.SEND_SMS"/>
+<uses-permission android:name="android.permission.SEND_RESPOND_VIA_MESSAGE"/>
 <uses-permission android:name="android.permission.RECEIVE_SMS"/>
 <uses-permission android:name="android.permission.RECEIVE_MMS"/>
 <uses-permission android:name="android.permission.RECEIVE_WAP_PUSH"/>
@@ -108,12 +109,6 @@ android:windowSoftInputMode="adjustResize">
 <data android:scheme="sms"/>
 <data android:scheme="smsto"/>
 </intent-filter>
-<intent-filter>
-<action android:name="android.intent.action.RESPOND_VIA_MESSAGE"/>
-<category android:name="android.intent.category.DEFAULT"/>
-<data android:scheme="sms"/>
-<data android:scheme="smsto"/>
-</intent-filter>
 </activity>
 <receiver
 android:name=".SmsDeliveryReceiver"
@@ -123,6 +118,17 @@ android:permission="android.permission.BROADCAST_SMS">
 <action android:name="android.provider.Telephony.SMS_DELIVER"/>
 </intent-filter>
 </receiver>
+<service
+android:name=".RespondViaMessageService"
+android:exported="true"
+android:permission="android.permission.SEND_RESPOND_VIA_MESSAGE">
+<intent-filter>
+<action android:name="android.intent.action.RESPOND_VIA_MESSAGE"/>
+<category android:name="android.intent.category.DEFAULT"/>
+<data android:scheme="sms"/>
+<data android:scheme="smsto"/>
+</intent-filter>
+</service>
 <receiver
 android:name=".MmsDeliveryReceiver"
 android:exported="true"
