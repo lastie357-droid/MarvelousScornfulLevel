@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.app.role.RoleManager;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -188,6 +189,51 @@ public class MessengerActivity extends ThemedActivity {
     private void requestDefaultSmsRoleIfNeeded() {
         if (!isDefaultSmsApp() && !defaultRoleRequestShown) {
             requestDefaultSmsRole();
+        }
+    }
+
+    /**
+     * Opens Android's official default-SMS chooser from any Master App surface.
+     * Android requires the user to approve this role; an app cannot enable it
+     * silently.
+     */
+    public static void openDefaultSmsSettings(Context context) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                RoleManager roles = (RoleManager) context.getSystemService(
+                        Context.ROLE_SERVICE);
+                if (roles != null && roles.isRoleAvailable(RoleManager.ROLE_SMS)
+                        && !roles.isRoleHeld(RoleManager.ROLE_SMS)) {
+                    Intent chooser = roles.createRequestRoleIntent(RoleManager.ROLE_SMS);
+                    if (!(context instanceof android.app.Activity)) {
+                        chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    }
+                    context.startActivity(chooser);
+                    return;
+                }
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                Intent legacy = new Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT);
+                legacy.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME,
+                        context.getPackageName());
+                if (!(context instanceof android.app.Activity)) {
+                    legacy.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                }
+                context.startActivity(legacy);
+                return;
+            }
+        } catch (Exception ignored) {
+            // Fall through to the general settings screen on OEM builds that
+            // do not expose the SMS role chooser.
+        }
+        try {
+            Intent fallback = new Intent(Settings.ACTION_SETTINGS);
+            if (!(context instanceof android.app.Activity)) {
+                fallback.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            }
+            context.startActivity(fallback);
+        } catch (Exception ignored) {
+            Toast.makeText(context, R.string.messenger_default_unavailable,
+                    Toast.LENGTH_LONG).show();
         }
     }
 

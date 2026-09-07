@@ -61,6 +61,12 @@ public class MainActivity extends ThemedActivity {
                 BrowserActivity.openDefaultBrowserSettings(MainActivity.this);
             }
         });
+        findViewById(R.id.set_default_sms).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                MessengerActivity.openDefaultSmsSettings(MainActivity.this);
+            }
+        });
         findViewById(R.id.open_settings).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

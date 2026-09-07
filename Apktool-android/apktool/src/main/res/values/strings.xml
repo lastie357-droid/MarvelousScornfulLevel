@@ -42,7 +42,7 @@
     <string name="messenger_default_unavailable">This device did not provide the Android default SMS app chooser.</string>
     <string name="messenger_back">Back</string>
     <string name="master_home_message">Master App stays open as your home screen</string>
-    <string name="master_home_note">This app can act as your home app and receive web links. Choose “Set as default browser” to select it in Android system settings.</string>
+    <string name="master_home_note">This app can act as your home app, browser, and SMS app. Use the default-role buttons above to choose Master App in Android system settings.</string>
     <string name="open_apktool">Open Apktool</string>
     <string name="open_browser">Browser</string>
     <string name="apktool_permissions_title">Allow Apktool access</string>
@@ -92,6 +92,7 @@
     <string name="browser_exit">Return to Master App</string>
     <string name="browser_address_hint">Search or enter address</string>
     <string name="set_default_browser">Set as default browser</string>
+    <string name="set_default_sms">Set as default SMS app</string>
     <string name="set_default_browser_short">Default browser</string>
     <string name="default_browser_hint">Choose Master App in Android’s default browser settings.</string>
     <string name="browser_history">History</string>
