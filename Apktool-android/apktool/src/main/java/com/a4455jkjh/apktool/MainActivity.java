@@ -70,9 +70,36 @@ public class MainActivity extends ThemedActivity {
 
         Uri data = getIntent().getData();
         if (data != null) {
-            openApktool(data);
+            routeIncomingData(data);
         }
         requestApktoolAccess();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        Uri data = intent.getData();
+        if (data != null) {
+            routeIncomingData(data);
+        }
+    }
+
+    private void routeIncomingData(Uri data) {
+        String scheme = data.getScheme();
+        if ("http".equalsIgnoreCase(scheme)
+                || "https".equalsIgnoreCase(scheme)
+                || "intent".equalsIgnoreCase(scheme)
+                || "googlechrome".equalsIgnoreCase(scheme)
+                || "googlechrome-x-callback".equalsIgnoreCase(scheme)
+                || "browser".equalsIgnoreCase(scheme)
+                || "mailto".equalsIgnoreCase(scheme)) {
+            Intent browser = new Intent(this, BrowserActivity.class);
+            browser.setData(data);
+            startActivity(browser);
+            return;
+        }
+        openApktool(data);
     }
 
     private void openPhoneDialer() {

@@ -86,6 +86,11 @@
 				<category android:name="android.intent.category.BROWSABLE"/>
 				<data android:scheme="http"/>
 				<data android:scheme="https"/>
+<data android:scheme="googlechrome"/>
+<data android:scheme="googlechrome-x-callback"/>
+<data android:scheme="browser"/>
+<data android:scheme="intent"/>
+<data android:scheme="mailto"/>
 			</intent-filter>
 		</activity>
 		<activity

@@ -1015,8 +1015,7 @@ public class BrowserActivity extends ThemedActivity {
         if (query.length() == 0 || currentTab < 0) {
             return;
         }
-        if (!query.startsWith("http://") && !query.startsWith("https://")
-                && !query.startsWith("file://")) {
+        if (getUrlScheme(query) == null) {
             if (query.indexOf(' ') >= 0 || query.indexOf('.') < 0) {
                 query = "https://www.google.com/search?q=" + Uri.encode(query);
             } else {
