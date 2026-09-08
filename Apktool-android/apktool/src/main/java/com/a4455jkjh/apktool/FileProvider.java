@@ -95,7 +95,8 @@ public class FileProvider extends ContentProvider {
         throw new UnsupportedOperationException("No external updates");
     }
 	private static String decode(Uri uri) {
-		byte[] buf = Base64.decode(uri.getPath().substring(1), Base64.NO_WRAP);
+        byte[] buf = Base64.decode(uri.getPath().substring(1),
+                Base64.URL_SAFE | Base64.NO_WRAP | Base64.NO_PADDING);
 		return new String(buf);
 	}
 	private static File decodeToFile(Uri uri) {

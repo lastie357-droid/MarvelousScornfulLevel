@@ -1,8 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Master App</string>
-    <string name="master_home_subtitle">Your Apktool workspace and private browser</string>
+    <string name="app_name">Master Launcher</string>
+    <string name="master_home_subtitle">Every app. One clean home.</string>
+    <string name="launcher_apps">Your apps</string>
+    <string name="launcher_app_count">%1$d installed apps</string>
+    <string name="launcher_search_hint">Search apps</string>
+    <string name="launcher_default">Make default launcher</string>
+    <string name="launcher_default_active">Default launcher</string>
+    <string name="launcher_default_message">Master Launcher can be your Android home screen. Choose it in the system launcher settings so your apps are always one tap away.</string>
+    <string name="launcher_default_unavailable">Android did not provide the default launcher chooser.</string>
+    <string name="launcher_no_apps">No launchable apps found.</string>
+    <string name="launcher_no_search_results">No apps match your search.</string>
+    <string name="launcher_menu_title">Launcher menu</string>
+    <string name="hidden_apps">Hidden apps</string>
+    <string name="hidden_apps_title">Hidden apps</string>
+    <string name="hidden_apps_empty">No hidden apps. Hide an app from its menu and it will appear here.</string>
+    <string name="unhide_app">Unhide</string>
+    <string name="hide_app">Hide app</string>
+    <string name="install_app">Install app</string>
+    <string name="install_apk_title">Install an APK</string>
+    <string name="install_apk_subtitle">Choose an APK from your device</string>
+    <string name="install_storage_needed">Storage access is needed to browse APK files.</string>
+    <string name="open_all_files_settings">Allow file access</string>
+    <string name="install_unknown_needed">Allow Master Launcher to install apps from this device.</string>
+    <string name="open_install_settings">Allow installs</string>
+    <string name="install_current_path">Location: %1$s</string>
+    <string name="install_empty_folder">No APK files or folders here.</string>
+    <string name="install_up">Up</string>
+    <string name="install_sort_newest">Newest first</string>
+    <string name="install_file_count">%1$d APKs</string>
+    <string name="app_details">App details</string>
+    <string name="app_uninstall_failed">Could not open the uninstall screen.</string>
+    <string name="app_system_uninstall_unavailable">System apps cannot be uninstalled from Master Launcher.</string>
+    <string name="app_uninstall_confirm">Uninstall %1$s?</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
     <string name="master_tools">TOOLS</string>
     <string name="master_apps">APPS</string>
     <string name="messenger">Messenger</string>
@@ -47,9 +80,7 @@
     <string name="open_browser">Browser</string>
     <string name="apktool_permissions_title">Allow Apktool access</string>
     <string name="apktool_all_files_message">Apktool needs All files access to show project files, read APKs, and save decoded or built output. Android will open its special access settings.</string>
-    <string name="open_all_files_settings">Open All files settings</string>
     <string name="apktool_install_permission_message">To install APKs from Apktool, allow this app to install unknown apps. You can still use the editor if you choose Later.</string>
-    <string name="open_install_settings">Open install settings</string>
     <string name="browser">Browser</string>
     <string name="browser_home">Home</string>
     <string name="browser_gmail">Gmail</string>
@@ -145,8 +176,6 @@
 
     <string name="yes">Yes</string>
     <string name="no">No</string>
-    <string name="ok">Ok</string>
-    <string name="cancel">Cancel</string>
 
     <string name="close_cur">Close</string>
     <string name="close_others">Close Others</string>
@@ -174,10 +203,8 @@
 	<string name="details">Details</string>
     <string name="launch_app">Launch app</string>
     <string name="uninstall_app">Uninstall</string>
-    <string name="app_uninstall_confirm">Do you want to uninstall %1$s?</string>
     <string name="app_no_launch_activity">This app has no launchable activity.</string>
     <string name="app_uninstall_unavailable">Uninstall settings could not be opened.</string>
-    <string name="app_system_uninstall_unavailable">System apps cannot be uninstalled from Master App.</string>
 
     <string name="text">%1$s</string>
     <string name="setting">Settings</string>

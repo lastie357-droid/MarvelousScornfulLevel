@@ -28,3 +28,17 @@ mtime_ms = 1788623516070
 storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:233faa3d-5f83-4967-9e7f-6a6f6789eacc/ab2026ea-8e9d-4e3d-a2b8-b996e746582d/ff4f2b19-ca6a-41c8-86d4-512353cf5e79"
 storage_version_token = "1788623523657714"
 content_type = "image/png"
+
+[[outputs]]
+id = "VhHF2r87fK6DXajm3fIXO"
+uri = "file://Apktool-android/releases/master-app-debug.apk"
+type = "unspecified"
+title = "Master Launcher debug APK"
+description = "Debug build of the new Master Launcher app."
+logical_id = "18c57d6b-cb25-4569-a1ee-f146040f9254"
+content_hash = "sha256:98f63f27def83e083e1f7cf5547f904665d6c21c0db3b62acb9c418b71db4cb9"
+size = 11980420
+mtime_ms = 1788864988381
+storage_uri = "gcs://replit-rams-assets-riker/rams/assets/repl:bff5ed55-d1d3-415e-a6d1-cb2faf42f071/18c57d6b-cb25-4569-a1ee-f146040f9254/583e6da3-e222-4016-a1af-9e36c1071e95"
+storage_version_token = "1788865008742288"
+content_type = "application/octet-stream"

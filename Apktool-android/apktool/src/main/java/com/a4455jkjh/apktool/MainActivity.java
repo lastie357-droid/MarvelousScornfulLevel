@@ -1,204 +1,181 @@
 package com.a4455jkjh.apktool;
 
-import android.content.Intent;
-import android.net.Uri;
-import android.os.Bundle;
-import android.view.View;
-import android.content.DialogInterface;
-import android.os.Build;
 import android.app.AlertDialog;
-import android.widget.Toast;
+import android.app.role.RoleManager;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.os.Build;
+import android.os.Bundle;
+import android.provider.Settings;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.GridLayout;
+import android.widget.PopupMenu;
+import android.widget.TextView;
 
+/**
+ * Master Launcher home screen.
+ *
+ * The launcher itself does not embed or recreate other apps. It discovers
+ * launchable packages and hands Android their normal launch intents.
+ */
 public class MainActivity extends ThemedActivity {
-    private static final int STORAGE_PERMISSION_REQUEST = 950;
-    private boolean permissionRequestInProgress;
-    private boolean permissionPromptShown;
-    private boolean allFilesSettingsOpened;
+    private static final int DEFAULT_HOME_REQUEST = 701;
+    private static final String PREFS = "master_launcher";
+    private static final String DEFAULT_PROMPT_SHOWN = "default_prompt_shown";
+
+    private LauncherApps launcherApps;
+    private Button defaultButton;
 
     @Override
     protected void init(Bundle savedInstanceState) {
-        setContentView(R.layout.master_home);
+        setContentView(R.layout.master_launcher);
+        showSystemBars();
 
-        findViewById(R.id.open_apktool).setOnClickListener(new View.OnClickListener() {
+        GridLayout grid = findViewById(R.id.launcher_grid);
+        TextView empty = findViewById(R.id.launcher_empty);
+        TextView appCount = findViewById(R.id.launcher_count);
+        EditText search = findViewById(R.id.launcher_search);
+        launcherApps = new LauncherApps(this, grid, empty, appCount, search, false);
+
+        defaultButton = findViewById(R.id.launcher_default);
+        defaultButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                openApktool(null);
-            }
-        });
-        findViewById(R.id.open_browser).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(MainActivity.this, BrowserActivity.class));
-            }
-        });
-        findViewById(R.id.open_media).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(MainActivity.this, MediaActivity.class));
-            }
-        });
-        findViewById(R.id.open_tools).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(MainActivity.this, ToolsActivity.class));
-            }
-        });
-        findViewById(R.id.open_messenger).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(MainActivity.this, MessengerActivity.class));
-            }
-        });
-        findViewById(R.id.open_phone_dialer).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                openPhoneDialer();
-            }
-        });
-        findViewById(R.id.set_default_browser).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                BrowserActivity.openDefaultBrowserSettings(MainActivity.this);
-            }
-        });
-        findViewById(R.id.set_default_sms).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                MessengerActivity.openDefaultSmsSettings(MainActivity.this);
-            }
-        });
-        findViewById(R.id.open_settings).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(MainActivity.this, SettingActivity.class));
+                requestDefaultLauncher();
             }
         });
 
-        Uri data = getIntent().getData();
-        if (data != null) {
-            routeIncomingData(data);
-        }
-        requestApktoolAccess();
-    }
+        findViewById(R.id.launcher_menu).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showLauncherMenu(view);
+            }
+        });
 
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        setIntent(intent);
-        Uri data = intent.getData();
-        if (data != null) {
-            routeIncomingData(data);
-        }
-    }
-
-    private void routeIncomingData(Uri data) {
-        String scheme = data.getScheme();
-        if ("http".equalsIgnoreCase(scheme)
-                || "https".equalsIgnoreCase(scheme)
-                || "intent".equalsIgnoreCase(scheme)
-                || "googlechrome".equalsIgnoreCase(scheme)
-                || "googlechrome-x-callback".equalsIgnoreCase(scheme)
-                || "browser".equalsIgnoreCase(scheme)
-                || "mailto".equalsIgnoreCase(scheme)) {
-            Intent browser = new Intent(this, BrowserActivity.class);
-            browser.setData(data);
-            startActivity(browser);
-            return;
-        }
-        openApktool(data);
-    }
-
-    private void openPhoneDialer() {
-        Intent dialer = new Intent(Intent.ACTION_DIAL);
-        dialer.setPackage("com.google.android.dialer");
-        try {
-            startActivity(dialer);
-        } catch (Exception exception) {
-            Toast.makeText(this, R.string.phone_dialer_unavailable, Toast.LENGTH_LONG).show();
-        }
+        launcherApps.refresh();
+        maybeExplainDefaultLauncher();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (allFilesSettingsOpened) {
-            allFilesSettingsOpened = false;
-            if (ApktoolPermissions.hasFileAccess(this)) {
-                permissionPromptShown = false;
-                requestApktoolAccess();
+        updateDefaultButton();
+        if (launcherApps != null) {
+            launcherApps.refresh();
+        }
+    }
+
+    private void showSystemBars() {
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+        getWindow().setStatusBarColor(getResources().getColor(R.color.launcher_background));
+        getWindow().setNavigationBarColor(getResources().getColor(R.color.launcher_background));
+    }
+
+    private void showLauncherMenu(View anchor) {
+        PopupMenu menu = new PopupMenu(this, anchor);
+        menu.getMenuInflater().inflate(R.menu.launcher, menu.getMenu());
+        menu.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == R.id.menu_install_app) {
+                startActivity(new Intent(MainActivity.this, InstallApkActivity.class));
+                return true;
             }
+            if (item.getItemId() == R.id.menu_hidden_apps) {
+                startActivity(new Intent(MainActivity.this, AppDrawerActivity.class));
+                return true;
+            }
+            if (item.getItemId() == R.id.menu_default_launcher) {
+                requestDefaultLauncher();
+                return true;
+            }
+            return false;
+        });
+        menu.show();
+    }
+
+    private void updateDefaultButton() {
+        if (defaultButton == null) {
             return;
         }
-        if (!permissionRequestInProgress && !permissionPromptShown) {
-            requestApktoolAccess();
+        if (isDefaultLauncher()) {
+            defaultButton.setText(R.string.launcher_default_active);
+            defaultButton.setEnabled(false);
+            defaultButton.setAlpha(0.7f);
+        } else {
+            defaultButton.setText(R.string.launcher_default);
+            defaultButton.setEnabled(true);
+            defaultButton.setAlpha(1f);
         }
     }
 
-    private void requestApktoolAccess() {
-        String[] missing = ApktoolPermissions.missingRuntimePermissions(this);
-        if (missing.length > 0) {
-            permissionRequestInProgress = true;
-            requestPermissions(missing, STORAGE_PERMISSION_REQUEST);
-            return;
-        }
-        if (!ApktoolPermissions.hasFileAccess(this)) {
-            permissionPromptShown = true;
-            new AlertDialog.Builder(this)
-                    .setTitle(R.string.apktool_permissions_title)
-                    .setMessage(R.string.apktool_all_files_message)
-                    .setPositiveButton(R.string.open_all_files_settings,
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    allFilesSettingsOpened = true;
-                                    ApktoolPermissions.openAllFilesAccessSettings(MainActivity.this);
-                                }
-                            })
-                    .setNegativeButton(R.string.later, null)
-                    .show();
-            return;
-        }
-        if (!ApktoolPermissions.canInstallPackages(this)
-                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            permissionPromptShown = true;
-            new AlertDialog.Builder(this)
-                    .setTitle(R.string.apktool_permissions_title)
-                    .setMessage(R.string.apktool_install_permission_message)
-                    .setPositiveButton(R.string.open_install_settings,
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    ApktoolPermissions.openInstallPackagesSettings(
-                                            MainActivity.this);
-                                }
-                            })
-                    .setNegativeButton(R.string.later, null)
-                    .show();
+    private boolean isDefaultLauncher() {
+        Intent home = new Intent(Intent.ACTION_MAIN);
+        home.addCategory(Intent.CATEGORY_HOME);
+        ResolveInfo resolved = getPackageManager().resolveActivity(
+                home, PackageManager.MATCH_DEFAULT_ONLY);
+        return resolved != null
+                && resolved.activityInfo != null
+                && getPackageName().equals(resolved.activityInfo.packageName);
+    }
+
+    private void requestDefaultLauncher() {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                RoleManager roleManager = getSystemService(RoleManager.class);
+                if (roleManager != null
+                        && roleManager.isRoleAvailable(RoleManager.ROLE_HOME)) {
+                    startActivityForResult(
+                            roleManager.createRequestRoleIntent(RoleManager.ROLE_HOME),
+                            DEFAULT_HOME_REQUEST);
+                    return;
+                }
+            }
+
+            Intent settings = new Intent(Settings.ACTION_HOME_SETTINGS);
+            startActivityForResult(settings, DEFAULT_HOME_REQUEST);
+        } catch (Exception exception) {
+            try {
+                Intent chooser = new Intent(Intent.ACTION_MAIN);
+                chooser.addCategory(Intent.CATEGORY_HOME);
+                chooser.addCategory(Intent.CATEGORY_DEFAULT);
+                startActivity(chooser);
+            } catch (Exception ignored) {
+                new AlertDialog.Builder(this)
+                        .setMessage(R.string.launcher_default_unavailable)
+                        .setPositiveButton(R.string.ok, null)
+                        .show();
+            }
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(
-            int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == STORAGE_PERMISSION_REQUEST) {
-            permissionRequestInProgress = false;
-            permissionPromptShown = false;
-            requestApktoolAccess();
+    private void maybeExplainDefaultLauncher() {
+        if (isDefaultLauncher()
+                || getSharedPreferences(PREFS, MODE_PRIVATE)
+                .getBoolean(DEFAULT_PROMPT_SHOWN, false)) {
+            return;
         }
-    }
-
-    private void openApktool(Uri data) {
-        Intent intent = new Intent(this, ApktoolActivity.class);
-        if (data != null) {
-            intent.setData(data);
-        }
-        startActivity(intent);
+        getSharedPreferences(PREFS, MODE_PRIVATE).edit()
+                .putBoolean(DEFAULT_PROMPT_SHOWN, true)
+                .apply();
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.launcher_default)
+                .setMessage(R.string.launcher_default_message)
+                .setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.launcher_default,
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                requestDefaultLauncher();
+                            }
+                        })
+                .show();
     }
 
     @Override
     public void onBackPressed() {
-        // Master App is a home surface: pressing Back must not close it.
-        Toast.makeText(this, R.string.master_home_message, Toast.LENGTH_SHORT).show();
+        // A home app remains in place when Back is pressed.
     }
 }

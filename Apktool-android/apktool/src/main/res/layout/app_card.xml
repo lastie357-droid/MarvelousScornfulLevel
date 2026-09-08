@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/app_card_root"
+    android:layout_width="match_parent"
+    android:layout_height="132dp"
+    android:layout_margin="5dp"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="7dp"
+    android:background="@drawable/launcher_card"
+    android:clickable="true"
+    android:focusable="true">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="64dp">
+
+        <ImageView
+            android:id="@+id/app_icon"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:layout_gravity="center"
+            android:contentDescription="@string/app_name" />
+
+        <TextView
+            android:id="@+id/app_more"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="right|top"
+            android:gravity="center"
+            android:text="⋮"
+            android:textColor="@color/launcher_muted"
+            android:textSize="20sp"
+            android:background="@drawable/launcher_more_button"
+            android:contentDescription="@string/launcher_menu_title" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/app_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="2"
+        android:textColor="@color/launcher_text"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+</LinearLayout>

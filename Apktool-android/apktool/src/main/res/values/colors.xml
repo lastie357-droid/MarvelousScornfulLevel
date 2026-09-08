@@ -18,4 +18,14 @@
     <color name="master_button_text">#ff08111d</color>
     <color name="master_button_pressed">#ff60c9f8</color>
     <color name="browser_toolbar">#ff151d29</color>
+    <color name="launcher_background">#0B0F17</color>
+    <color name="launcher_surface">#141B28</color>
+    <color name="launcher_surface_pressed">#202C40</color>
+    <color name="launcher_border">#26354A</color>
+    <color name="launcher_text">#F5F7FB</color>
+    <color name="launcher_muted">#9AA8BB</color>
+    <color name="launcher_accent">#62D8FF</color>
+    <color name="launcher_accent_deep">#187FAE</color>
+    <color name="launcher_primary_text">#06121A</color>
+    <color name="launcher_purple">#946BFF</color>
 </resources>
