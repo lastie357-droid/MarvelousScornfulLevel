@@ -10,10 +10,10 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingLeft="22dp"
-        android:paddingTop="18dp"
-        android:paddingRight="16dp"
-        android:paddingBottom="12dp">
+         android:paddingLeft="18dp"
+         android:paddingTop="10dp"
+         android:paddingRight="12dp"
+         android:paddingBottom="8dp">
 
         <LinearLayout
             android:layout_width="0dp"
@@ -26,26 +26,26 @@
                 android:layout_height="wrap_content"
                 android:text="@string/app_name"
                 android:textColor="@color/launcher_text"
-                android:textSize="27sp"
+                 android:textSize="22sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                 android:layout_marginTop="1dp"
                 android:text="@string/master_home_subtitle"
                 android:textColor="@color/launcher_muted"
-                android:textSize="13sp" />
+                 android:textSize="12sp" />
         </LinearLayout>
 
         <TextView
             android:id="@+id/launcher_menu"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+             android:layout_width="40dp"
+             android:layout_height="40dp"
             android:gravity="center"
             android:text="⋮"
             android:textColor="@color/launcher_text"
-            android:textSize="30sp"
+             android:textSize="25sp"
             android:contentDescription="@string/launcher_menu_title"
             android:background="@drawable/launcher_icon_button" />
     </LinearLayout>
@@ -69,7 +69,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="20dp"
+                 android:padding="16dp"
                 android:background="@drawable/launcher_hero">
 
                 <TextView
@@ -78,25 +78,25 @@
                     android:layout_height="wrap_content"
                     android:text="Your apps, ready."
                     android:textColor="@color/launcher_text"
-                    android:textSize="22sp"
+                     android:textSize="20sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/launcher_count"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
+                     android:layout_marginTop="4dp"
                     android:textColor="@color/launcher_muted"
                     android:textSize="14sp" />
 
                 <Button
                     android:id="@+id/launcher_default"
                     android:layout_width="wrap_content"
-                    android:layout_height="44dp"
-                    android:layout_marginTop="16dp"
+                     android:layout_height="40dp"
+                     android:layout_marginTop="12dp"
                     android:background="@drawable/launcher_primary_button"
-                    android:paddingLeft="18dp"
-                    android:paddingRight="18dp"
+                     android:paddingLeft="16dp"
+                     android:paddingRight="16dp"
                     android:text="@string/launcher_default"
                     android:textAllCaps="false"
                     android:textColor="@color/launcher_primary_text"
@@ -107,8 +107,8 @@
             <EditText
                 android:id="@+id/launcher_search"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginTop="18dp"
+                 android:layout_height="46dp"
+                 android:layout_marginTop="12dp"
                 android:background="@drawable/launcher_search"
                 android:hint="@string/launcher_search_hint"
                 android:inputType="text"
@@ -122,7 +122,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="22dp"
+                 android:layout_marginTop="16dp"
                 android:gravity="center_vertical">
 
                 <TextView

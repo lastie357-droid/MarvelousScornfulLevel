@@ -3,3 +3,4 @@
 - [Android storage access](apktool-storage-permissions.md) — API 30+ file browsing requires All files access; WRITE_EXTERNAL_STORAGE alone leaves the Apktool workspace uninitialized.
 - [SMS role requirements](messenger-sms-role.md) — reading is permission-gated, while deleting and complete SMS handling require the app to hold Android’s default SMS role.
 - [Android media thumbnails](android-media-thumbnails.md) — current SDKs expose getThumbnail for MediaStore image/video previews; cursor thumbnail helpers are not uniform.
+- [Third-party app hosting](launcher-third-party-boundary.md) — Android launchers can own the launch/return path, but cannot embed arbitrary app activities inside their own process or UI.

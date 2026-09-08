@@ -35,9 +35,9 @@ import java.util.Set;
 /**
  * Shared installed-app grid for the launcher and its hidden-app screen.
  *
- * Every app action intentionally goes through Android's public intents:
- * launching uses the package launch intent, while uninstalling uses the
- * package-manager uninstall intent.
+ * Every app action intentionally goes through Android's public intents.
+ * Only packages with an exported MAIN/LAUNCHER activity are included, so
+ * background services and content-only packages never appear as dead cards.
  */
 public final class LauncherApps {
     private static final String PREFS = "master_launcher";
@@ -91,19 +91,25 @@ public final class LauncherApps {
         allEntries.clear();
         Set<String> seenPackages = new HashSet<String>();
         Set<String> hiddenPackages = hiddenPackages();
-        List<ApplicationInfo> results = packageManager.getInstalledApplications(0);
+        Intent launcherIntent = new Intent(Intent.ACTION_MAIN);
+        launcherIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+        List<android.content.pm.ResolveInfo> results =
+                packageManager.queryIntentActivities(launcherIntent, 0);
 
-        for (ApplicationInfo info : results) {
-            if (info == null || info.packageName == null) {
+        for (android.content.pm.ResolveInfo resolved : results) {
+            if (resolved == null || resolved.activityInfo == null
+                    || resolved.activityInfo.applicationInfo == null) {
                 continue;
             }
+            ApplicationInfo info = resolved.activityInfo.applicationInfo;
             String packageName = info.packageName;
             if (packageName.equals(activity.getPackageName()) || seenPackages.contains(packageName)) {
                 continue;
             }
-            // Services and content-only packages are installed, but cannot be
-            // opened from a launcher. Keep only apps with a real launch intent.
-            if (packageManager.getLaunchIntentForPackage(packageName) == null) {
+            // A package can expose a launcher intent that is disabled or not
+            // exported. It is not actually openable from this launcher then.
+            if (!info.enabled || !resolved.activityInfo.enabled
+                    || !resolved.activityInfo.exported) {
                 continue;
             }
             seenPackages.add(packageName);
@@ -118,7 +124,10 @@ public final class LauncherApps {
                         info.loadLabel(packageManager),
                         info.loadIcon(packageManager),
                         (info.flags & ApplicationInfo.FLAG_SYSTEM) != 0,
-                        packageInfo.lastUpdateTime));
+                        packageInfo.lastUpdateTime,
+                        new Intent(launcherIntent)
+                                .setComponent(new android.content.ComponentName(
+                                        packageName, resolved.activityInfo.name))));
             } catch (PackageManager.NameNotFoundException ignored) {
                 // The package may have been removed while the launcher refreshed.
             }
@@ -227,14 +236,13 @@ public final class LauncherApps {
     }
 
     private void launch(AppEntry entry) {
-        Intent launch = packageManager.getLaunchIntentForPackage(entry.packageName);
-        if (launch == null) {
-            Toast.makeText(activity, R.string.app_no_launch_activity, Toast.LENGTH_SHORT).show();
-            return;
-        }
-        launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
         try {
-            activity.startActivity(launch);
+            // Start from the launcher activity itself. Do not force a new
+            // task: when the launched activity finishes, Android can return
+            // to this launcher naturally. The third-party app remains in its
+            // own Android process; arbitrary APKs cannot be hosted inside
+            // this activity or process.
+            activity.startActivityForResult(entry.launchIntent, MainActivity.APP_LAUNCH_REQUEST);
         } catch (Exception exception) {
             Toast.makeText(activity, R.string.app_no_launch_activity, Toast.LENGTH_SHORT).show();
         }
@@ -309,15 +317,17 @@ public final class LauncherApps {
         final android.graphics.drawable.Drawable icon;
         final boolean systemApp;
         final long lastUpdateTime;
+        final Intent launchIntent;
 
         AppEntry(String packageName, CharSequence label,
                  android.graphics.drawable.Drawable icon, boolean systemApp,
-                 long lastUpdateTime) {
+                 long lastUpdateTime, Intent launchIntent) {
             this.packageName = packageName;
             this.label = label;
             this.icon = icon;
             this.systemApp = systemApp;
             this.lastUpdateTime = lastUpdateTime;
+            this.launchIntent = launchIntent;
         }
     }
 }

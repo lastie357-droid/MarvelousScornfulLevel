@@ -24,6 +24,7 @@ import android.widget.TextView;
  */
 public class MainActivity extends ThemedActivity {
     private static final int DEFAULT_HOME_REQUEST = 701;
+    static final int APP_LAUNCH_REQUEST = 702;
     private static final String PREFS = "master_launcher";
     private static final String DEFAULT_PROMPT_SHOWN = "default_prompt_shown";
 
@@ -78,6 +79,8 @@ public class MainActivity extends ThemedActivity {
     private void showLauncherMenu(View anchor) {
         PopupMenu menu = new PopupMenu(this, anchor);
         menu.getMenuInflater().inflate(R.menu.launcher, menu.getMenu());
+        menu.getMenu().findItem(R.id.menu_default_launcher)
+                .setVisible(!isDefaultLauncher());
         menu.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == R.id.menu_install_app) {
                 startActivity(new Intent(MainActivity.this, InstallApkActivity.class));
@@ -101,10 +104,11 @@ public class MainActivity extends ThemedActivity {
             return;
         }
         if (isDefaultLauncher()) {
-            defaultButton.setText(R.string.launcher_default_active);
-            defaultButton.setEnabled(false);
-            defaultButton.setAlpha(0.7f);
+            // A completed setup action should not keep occupying the hero
+            // card. Android is the source of truth, not the old prompt flag.
+            defaultButton.setVisibility(View.GONE);
         } else {
+            defaultButton.setVisibility(View.VISIBLE);
             defaultButton.setText(R.string.launcher_default);
             defaultButton.setEnabled(true);
             defaultButton.setAlpha(1f);
@@ -112,6 +116,13 @@ public class MainActivity extends ThemedActivity {
     }
 
     private boolean isDefaultLauncher() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            RoleManager roleManager = getSystemService(RoleManager.class);
+            if (roleManager != null && roleManager.isRoleAvailable(RoleManager.ROLE_HOME)
+                    && roleManager.isRoleHeld(RoleManager.ROLE_HOME)) {
+                return true;
+            }
+        }
         Intent home = new Intent(Intent.ACTION_MAIN);
         home.addCategory(Intent.CATEGORY_HOME);
         ResolveInfo resolved = getPackageManager().resolveActivity(

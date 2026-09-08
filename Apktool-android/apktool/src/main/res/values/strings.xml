@@ -4,7 +4,7 @@
     <string name="app_name">Master Launcher</string>
     <string name="master_home_subtitle">Every app. One clean home.</string>
     <string name="launcher_apps">Your apps</string>
-    <string name="launcher_app_count">%1$d installed apps</string>
+    <string name="launcher_app_count">%1$d openable apps</string>
     <string name="launcher_search_hint">Search apps</string>
     <string name="launcher_default">Make default launcher</string>
     <string name="launcher_default_active">Default launcher</string>
