@@ -7,8 +7,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.Color;
 import android.net.Uri;
 import android.provider.Settings;
@@ -36,8 +38,10 @@ import java.util.Set;
  * Shared installed-app grid for the launcher and its hidden-app screen.
  *
  * Every app action intentionally goes through Android's public intents.
- * Only packages with an exported MAIN/LAUNCHER activity are included, so
- * background services and content-only packages never appear as dead cards.
+ * Only packages with an exported, externally resolvable MAIN/LAUNCHER
+ * singleTop activity are included, so background services, content-only
+ * packages, and activities that always create another instance never appear
+ * as dead cards.
  */
 public final class LauncherApps {
     private static final String PREFS = "master_launcher";
@@ -93,10 +97,10 @@ public final class LauncherApps {
         Set<String> hiddenPackages = hiddenPackages();
         Intent launcherIntent = new Intent(Intent.ACTION_MAIN);
         launcherIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-        List<android.content.pm.ResolveInfo> results =
+        List<ResolveInfo> results =
                 packageManager.queryIntentActivities(launcherIntent, 0);
 
-        for (android.content.pm.ResolveInfo resolved : results) {
+        for (ResolveInfo resolved : results) {
             if (resolved == null || resolved.activityInfo == null
                     || resolved.activityInfo.applicationInfo == null) {
                 continue;
@@ -109,7 +113,15 @@ public final class LauncherApps {
             // A package can expose a launcher intent that is disabled or not
             // exported. It is not actually openable from this launcher then.
             if (!info.enabled || !resolved.activityInfo.enabled
-                    || !resolved.activityInfo.exported) {
+                    || !resolved.activityInfo.exported
+                    || resolved.activityInfo.launchMode != ActivityInfo.LAUNCH_SINGLE_TOP
+                    || resolved.activityInfo.name == null) {
+                continue;
+            }
+            Intent target = new Intent(launcherIntent)
+                    .setComponent(new android.content.ComponentName(
+                            packageName, resolved.activityInfo.name));
+            if (target.resolveActivity(packageManager) == null) {
                 continue;
             }
             seenPackages.add(packageName);
@@ -125,9 +137,7 @@ public final class LauncherApps {
                         info.loadIcon(packageManager),
                         (info.flags & ApplicationInfo.FLAG_SYSTEM) != 0,
                         packageInfo.lastUpdateTime,
-                        new Intent(launcherIntent)
-                                .setComponent(new android.content.ComponentName(
-                                        packageName, resolved.activityInfo.name))));
+                        target));
             } catch (PackageManager.NameNotFoundException ignored) {
                 // The package may have been removed while the launcher refreshed.
             }
