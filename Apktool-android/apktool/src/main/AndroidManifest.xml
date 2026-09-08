@@ -8,6 +8,7 @@
 	<uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
 	<uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES"/>
 	<uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
+	<uses-permission android:name="android.permission.SET_WALLPAPER"/>
 	<application
 		android:name=".ApktoolApplication"
 		android:icon="@mipmap/apktool"
@@ -37,6 +38,10 @@ android:label="@string/app_name"/>
 android:name=".InstallApkActivity"
 android:exported="false"
 android:label="@string/install_app"/>
+<activity
+android:name=".WallpaperActivity"
+android:exported="false"
+android:label="@string/launcher_wallpaper"/>
 		<provider
 			android:name="com.a4455jkjh.apktool.FileProvider"
 			android:exported="false"

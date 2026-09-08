@@ -7,6 +7,9 @@
         android:id="@+id/menu_hidden_apps"
         android:title="@string/hidden_apps" />
     <item
+        android:id="@+id/menu_wallpaper"
+        android:title="@string/launcher_wallpaper" />
+    <item
         android:id="@+id/menu_default_launcher"
         android:title="@string/launcher_default" />
 </menu>

@@ -10,7 +10,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridLayout;
 import android.widget.PopupMenu;
@@ -29,8 +28,6 @@ public class MainActivity extends ThemedActivity {
     private static final String DEFAULT_PROMPT_SHOWN = "default_prompt_shown";
 
     private LauncherApps launcherApps;
-    private Button defaultButton;
-
     @Override
     protected void init(Bundle savedInstanceState) {
         setContentView(R.layout.master_launcher);
@@ -41,14 +38,6 @@ public class MainActivity extends ThemedActivity {
         TextView appCount = findViewById(R.id.launcher_count);
         EditText search = findViewById(R.id.launcher_search);
         launcherApps = new LauncherApps(this, grid, empty, appCount, search, false);
-
-        defaultButton = findViewById(R.id.launcher_default);
-        defaultButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                requestDefaultLauncher();
-            }
-        });
 
         findViewById(R.id.launcher_menu).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -64,7 +53,6 @@ public class MainActivity extends ThemedActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        updateDefaultButton();
         if (launcherApps != null) {
             launcherApps.refresh();
         }
@@ -90,6 +78,10 @@ public class MainActivity extends ThemedActivity {
                 startActivity(new Intent(MainActivity.this, AppDrawerActivity.class));
                 return true;
             }
+            if (item.getItemId() == R.id.menu_wallpaper) {
+                startActivity(new Intent(MainActivity.this, WallpaperActivity.class));
+                return true;
+            }
             if (item.getItemId() == R.id.menu_default_launcher) {
                 requestDefaultLauncher();
                 return true;
@@ -97,22 +89,6 @@ public class MainActivity extends ThemedActivity {
             return false;
         });
         menu.show();
-    }
-
-    private void updateDefaultButton() {
-        if (defaultButton == null) {
-            return;
-        }
-        if (isDefaultLauncher()) {
-            // A completed setup action should not keep occupying the hero
-            // card. Android is the source of truth, not the old prompt flag.
-            defaultButton.setVisibility(View.GONE);
-        } else {
-            defaultButton.setVisibility(View.VISIBLE);
-            defaultButton.setText(R.string.launcher_default);
-            defaultButton.setEnabled(true);
-            defaultButton.setAlpha(1f);
-        }
     }
 
     private boolean isDefaultLauncher() {

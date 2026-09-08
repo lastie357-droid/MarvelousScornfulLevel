@@ -46,6 +46,7 @@ import java.util.Set;
 public final class LauncherApps {
     private static final String PREFS = "master_launcher";
     private static final String HIDDEN_PACKAGES = "hidden_packages";
+    private static final String RECENT_PACKAGES = "recent_packages";
 
     private final Activity activity;
     private final GridLayout grid;
@@ -144,9 +145,23 @@ public final class LauncherApps {
         }
 
         final Collator collator = Collator.getInstance();
+        final List<String> recentPackages = recentPackages();
         Collections.sort(allEntries, new Comparator<AppEntry>() {
             @Override
             public int compare(AppEntry left, AppEntry right) {
+                int leftRecent = recentPackages.indexOf(left.packageName);
+                int rightRecent = recentPackages.indexOf(right.packageName);
+                if (leftRecent >= 0 || rightRecent >= 0) {
+                    if (leftRecent < 0) {
+                        return 1;
+                    }
+                    if (rightRecent < 0) {
+                        return -1;
+                    }
+                    if (leftRecent != rightRecent) {
+                        return leftRecent - rightRecent;
+                    }
+                }
                 int result = collator.compare(left.label.toString(), right.label.toString());
                 return result != 0 ? result : left.packageName.compareTo(right.packageName);
             }
@@ -211,7 +226,7 @@ public final class LauncherApps {
 
         GridLayout.LayoutParams params = new GridLayout.LayoutParams();
         params.width = 0;
-        params.height = dp(132);
+        params.height = dp(106);
         params.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
         params.setMargins(0, 0, 0, 0);
         grid.addView(card, params);
@@ -253,9 +268,43 @@ public final class LauncherApps {
             // own Android process; arbitrary APKs cannot be hosted inside
             // this activity or process.
             activity.startActivityForResult(entry.launchIntent, MainActivity.APP_LAUNCH_REQUEST);
+            rememberRecent(entry.packageName);
         } catch (Exception exception) {
             Toast.makeText(activity, R.string.app_no_launch_activity, Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private List<String> recentPackages() {
+        String saved = preferences.getString(RECENT_PACKAGES, "");
+        List<String> recent = new ArrayList<String>();
+        if (saved == null || saved.length() == 0) {
+            return recent;
+        }
+        String[] packages = saved.split(",");
+        for (String packageName : packages) {
+            if (packageName != null && packageName.length() > 0
+                    && !recent.contains(packageName)) {
+                recent.add(packageName);
+            }
+        }
+        return recent;
+    }
+
+    private void rememberRecent(String packageName) {
+        List<String> recent = recentPackages();
+        recent.remove(packageName);
+        recent.add(0, packageName);
+        while (recent.size() > 5) {
+            recent.remove(recent.size() - 1);
+        }
+        StringBuilder saved = new StringBuilder();
+        for (String recentPackage : recent) {
+            if (saved.length() > 0) {
+                saved.append(',');
+            }
+            saved.append(recentPackage);
+        }
+        preferences.edit().putString(RECENT_PACKAGES, saved.toString()).apply();
     }
 
     private void showDetails(AppEntry entry) {
