@@ -17,11 +17,13 @@
 
         <ImageButton
             android:id="@+id/launcher_menu"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="@drawable/launcher_icon_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginRight="2dp"
+            android:background="@drawable/launcher_menu_button"
             android:contentDescription="@string/launcher_menu_title"
-            android:padding="10dp"
+            android:padding="12dp"
             android:scaleType="centerInside"
             android:src="@drawable/launcher_overflow"
             android:visibility="visible" />

@@ -36,9 +36,8 @@ import java.util.Set;
  * Shared installed-app grid for the launcher and its hidden-app screen.
  *
  * Every app action intentionally goes through Android's public intents.
- * The grid contains every installed application package. Apps without a
- * launch activity can still be inspected, hidden, or uninstalled from their
- * card menu; tapping their card reports that Android has no activity to open.
+ * The grid contains installed application packages that Android can launch.
+ * Apps without a launch activity are intentionally left out of the grid.
  */
 public final class LauncherApps {
     private static final String PREFS = "master_launcher";
@@ -103,13 +102,16 @@ public final class LauncherApps {
             if (packageName == null || packageName.equals(activity.getPackageName())) {
                 continue;
             }
+            Intent target = packageManager.getLaunchIntentForPackage(packageName);
+            if (target == null) {
+                continue;
+            }
             if (hiddenOnly != hiddenPackages.contains(packageName)) {
                 continue;
             }
 
             try {
                 PackageInfo packageInfo = packageManager.getPackageInfo(packageName, 0);
-                Intent target = packageManager.getLaunchIntentForPackage(packageName);
                 allEntries.add(new AppEntry(
                         packageName,
                         info.loadLabel(packageManager),
