@@ -14,6 +14,7 @@
     <string name="launcher_no_apps">No launchable apps found.</string>
     <string name="launcher_no_search_results">No apps match your search.</string>
     <string name="launcher_menu_title">Launcher menu</string>
+    <string name="launcher_menu_button">⋮ MENU</string>
     <string name="launcher_wallpaper">Wallpaper</string>
     <string name="wallpaper_title">Choose wallpaper</string>
     <string name="wallpaper_subtitle">Dark, neutral wallpapers for Master Launcher</string>

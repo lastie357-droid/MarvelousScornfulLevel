@@ -9,23 +9,28 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="right"
+        android:gravity="end"
         android:paddingLeft="12dp"
         android:paddingTop="6dp"
         android:paddingRight="12dp"
         android:paddingBottom="4dp">
 
-        <ImageButton
+        <TextView
             android:id="@+id/launcher_menu"
-            android:layout_width="48dp"
+            android:layout_width="84dp"
             android:layout_height="48dp"
+            android:layout_gravity="end"
             android:layout_marginTop="2dp"
             android:layout_marginRight="2dp"
             android:background="@drawable/launcher_menu_button"
             android:contentDescription="@string/launcher_menu_title"
-            android:padding="12dp"
-            android:scaleType="centerInside"
-            android:src="@drawable/launcher_overflow"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:text="@string/launcher_menu_button"
+            android:textColor="@color/launcher_text"
+            android:textSize="14sp"
+            android:textStyle="bold"
             android:visibility="visible" />
     </LinearLayout>
 

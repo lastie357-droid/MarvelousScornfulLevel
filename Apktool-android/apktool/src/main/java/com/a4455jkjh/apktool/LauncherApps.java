@@ -242,12 +242,22 @@ public final class LauncherApps {
 
     private void launch(AppEntry entry) {
         try {
-            // Start from the launcher activity itself. Do not force a new
-            // task: when the launched activity finishes, Android can return
-            // to this launcher naturally. The third-party app remains in its
-            // own Android process; arbitrary APKs cannot be hosted inside
-            // this activity or process.
-            activity.startActivityForResult(entry.launchIntent, MainActivity.APP_LAUNCH_REQUEST);
+            /*
+             * Launch the package's own launcher component from this Activity.
+             * Do not add NEW_TASK, NEW_DOCUMENT, MULTIPLE_TASK, or any other
+             * task/activity flags. Some package-manager launch intents can
+             * carry flags supplied by the target package, so clear them before
+             * handing the intent to Android.
+             *
+             * A third-party package still owns its Activity and process;
+             * Android cannot embed arbitrary APK Activities inside this
+             * launcher. Starting from this Activity without NEW_TASK is the
+             * supported launcher hand-off and lets Android return here when
+             * the launched Activity finishes.
+             */
+            Intent launch = new Intent(entry.launchIntent);
+            launch.setFlags(0);
+            activity.startActivity(launch);
             rememberRecent(entry.packageName);
         } catch (Exception exception) {
             Toast.makeText(activity, R.string.app_no_launch_activity, Toast.LENGTH_SHORT).show();
