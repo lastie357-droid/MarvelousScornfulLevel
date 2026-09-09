@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ComponentName;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -249,6 +250,8 @@ public final class LauncherApps {
              * Do not add NEW_TASK, NEW_DOCUMENT, MULTIPLE_TASK, or any other
              * task/activity flags. Clear any flags supplied by the package
              * manager before handing the launcher Activity to Android.
+             * startActivityForResult keeps the normal result channel
+             * available if the target returns data when it finishes.
              *
              * A third-party package still owns its Activity and process;
              * Android cannot embed arbitrary APK Activities inside this
@@ -262,8 +265,16 @@ public final class LauncherApps {
                         Toast.LENGTH_SHORT).show();
                 return;
             }
+            ComponentName launcherComponent = launch.getComponent();
+            if (launcherComponent == null) {
+                Toast.makeText(activity, R.string.app_no_launch_activity,
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
+            launch.setComponent(launcherComponent);
+            launch.setPackage(entry.packageName);
             launch.setFlags(0);
-            activity.startActivity(launch);
+            activity.startActivityForResult(launch, MainActivity.APP_LAUNCH_REQUEST);
             rememberRecent(entry.packageName);
         } catch (Exception exception) {
             Toast.makeText(activity, R.string.app_no_launch_activity, Toast.LENGTH_SHORT).show();
