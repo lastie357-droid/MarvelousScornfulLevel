@@ -281,10 +281,11 @@ public class InstallApkActivity extends ThemedActivity {
         Uri fileUri = Uri.parse("content://com.a4455jkjh.fileprovider/" + encoded);
         Intent installer = new Intent(Intent.ACTION_INSTALL_PACKAGE);
         installer.setDataAndType(fileUri, "application/vnd.android.package-archive");
-        installer.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        installer.putExtra(Intent.EXTRA_RETURN_RESULT, true);
+        // Grant the package installer access to the APK contents, but do not
+        // put the installer in a new Activity or task.
+        installer.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         try {
-            startActivityForResult(installer, 811);
+            startActivity(installer);
         } catch (Exception exception) {
             Toast.makeText(this, R.string.install_unknown_needed, Toast.LENGTH_LONG).show();
         }
