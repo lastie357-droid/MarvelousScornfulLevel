@@ -5,12 +5,14 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ComponentName;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -241,26 +243,55 @@ public final class LauncherApps {
     }
 
     private void launch(AppEntry entry) {
+        Intent launch = new Intent(entry.launchIntent);
+        launch.setFlags(0);
+        ComponentName component = launch.getComponent();
+
         try {
             /*
-             * Launch the package's own launcher component from this Activity.
-             * Do not add NEW_TASK, NEW_DOCUMENT, MULTIPLE_TASK, or any other
-             * task/activity flags. Some package-manager launch intents can
-             * carry flags supplied by the target package, so clear them before
-             * handing the intent to Android.
+             * When available, let Android's launcher service start the
+             * package's own main activity. This is the platform path intended
+             * for launchers and lets Android reuse or bring forward the
+             * target app's task.
              *
-             * A third-party package still owns its Activity and process;
-             * Android cannot embed arbitrary APK Activities inside this
-             * launcher. Starting from this Activity without NEW_TASK is the
-             * supported launcher hand-off and lets Android return here when
-             * the launched Activity finishes.
+             * The app does not add NEW_TASK, NEW_DOCUMENT, MULTIPLE_TASK, or
+             * any other task/activity flags. A third-party package still owns
+             * its Activity and process; Android cannot embed arbitrary APK
+             * Activities inside this launcher's view hierarchy.
              */
-            Intent launch = new Intent(entry.launchIntent);
-            launch.setFlags(0);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+                    && component != null
+                    && launchWithLauncherService(component)) {
+                rememberRecent(entry.packageName);
+                return;
+            }
+
+            // Compatibility fallback for older Android versions or devices
+            // that reject the launcher-service handoff.
             activity.startActivity(launch);
             rememberRecent(entry.packageName);
         } catch (Exception exception) {
             Toast.makeText(activity, R.string.app_no_launch_activity, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private boolean launchWithLauncherService(ComponentName component) {
+        try {
+            android.content.pm.LauncherApps launcherService =
+                    (android.content.pm.LauncherApps) activity.getSystemService(
+                            Context.LAUNCHER_APPS_SERVICE);
+            if (launcherService == null) {
+                return false;
+            }
+            launcherService.startMainActivity(
+                    component, android.os.Process.myUserHandle(), null, null);
+            return true;
+        } catch (SecurityException exception) {
+            // The service can reject the call when this app is not the active
+            // home app. The explicit intent fallback still works normally.
+            return false;
+        } catch (IllegalArgumentException exception) {
+            return false;
         }
     }
 
