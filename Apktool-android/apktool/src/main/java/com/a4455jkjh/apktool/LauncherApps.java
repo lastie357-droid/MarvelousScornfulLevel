@@ -243,11 +243,12 @@ public final class LauncherApps {
     private void launch(AppEntry entry) {
         try {
             /*
-             * Launch the package's own launcher component from this Activity.
+             * Resolve the package's current exported launcher Activity at the
+             * moment the user taps it. This avoids retaining a stale launch
+             * intent after the package is updated or its launcher changes.
              * Do not add NEW_TASK, NEW_DOCUMENT, MULTIPLE_TASK, or any other
-             * task/activity flags. Some package-manager launch intents can
-             * carry flags supplied by the target package, so clear them before
-             * handing the intent to Android.
+             * task/activity flags. Clear any flags supplied by the package
+             * manager before handing the launcher Activity to Android.
              *
              * A third-party package still owns its Activity and process;
              * Android cannot embed arbitrary APK Activities inside this
@@ -255,7 +256,12 @@ public final class LauncherApps {
              * supported launcher hand-off and lets Android return here when
              * the launched Activity finishes.
              */
-            Intent launch = new Intent(entry.launchIntent);
+            Intent launch = packageManager.getLaunchIntentForPackage(entry.packageName);
+            if (launch == null) {
+                Toast.makeText(activity, R.string.app_no_launch_activity,
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
             launch.setFlags(0);
             activity.startActivity(launch);
             rememberRecent(entry.packageName);
