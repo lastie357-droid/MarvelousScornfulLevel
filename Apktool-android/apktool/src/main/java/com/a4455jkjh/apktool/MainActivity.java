@@ -28,6 +28,7 @@ public class MainActivity extends ThemedActivity {
     private static final String DEFAULT_PROMPT_SHOWN = "default_prompt_shown";
 
     private LauncherApps launcherApps;
+
     @Override
     protected void init(Bundle savedInstanceState) {
         setContentView(R.layout.master_launcher);

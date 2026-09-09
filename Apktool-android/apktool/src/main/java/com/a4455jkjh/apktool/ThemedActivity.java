@@ -27,7 +27,11 @@ public abstract class ThemedActivity extends FragmentActivity {
 		int flag = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
 			View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY|
 			View.SYSTEM_UI_FLAG_LOW_PROFILE;
-		if (Settings.lightTheme) {
+if (act instanceof MainActivity) {
+act.setTheme(Settings.lightTheme
+? R.style.LauncherThemeLight
+: R.style.LauncherTheme);
+} else if (Settings.lightTheme) {
 			act.setTheme(R.style.AppThemeLight);
 			View view = act.getWindow().getDecorView();
 			int flags = view.getSystemUiVisibility() |

@@ -6,31 +6,41 @@
     android:background="@color/launcher_background">
 
     <LinearLayout
+        android:id="@+id/launcher_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="end"
+        android:gravity="center_vertical"
         android:paddingLeft="12dp"
         android:paddingTop="6dp"
         android:paddingRight="12dp"
         android:paddingBottom="4dp">
 
         <TextView
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:text="@string/app_name"
+            android:textColor="@color/launcher_text"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <ImageButton
             android:id="@+id/launcher_menu"
-            android:layout_width="84dp"
+            android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_gravity="end"
             android:layout_marginTop="2dp"
-            android:layout_marginRight="2dp"
+            android:layout_marginRight="0dp"
             android:background="@drawable/launcher_menu_button"
             android:contentDescription="@string/launcher_menu_title"
             android:clickable="true"
             android:focusable="true"
             android:gravity="center"
-            android:text="@string/launcher_menu_button"
-            android:textColor="@color/launcher_text"
-            android:textSize="14sp"
-            android:textStyle="bold"
+            android:padding="12dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/launcher_overflow"
             android:visibility="visible" />
     </LinearLayout>
 
