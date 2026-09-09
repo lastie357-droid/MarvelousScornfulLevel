@@ -1,0 +1,47 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.a4455jkjh.apktool-mergeDebugResources-4:/values-v21/values-v21.xml",
+            "map": [
+                {
+                    "source": "/home/runner/.gradle/caches/8.11.1/transforms/abc43769634d5588c1dfd894b7f3ecfa/transformed/core-1.0.0/res/values-v21/values-v21.xml",
+                    "from": {
+                        "startLines": "2,3,4,5,6,7,8,9,10,13",
+                        "startColumns": "4,4,4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,159,223,290,354,470,596,722,850,1022",
+                        "endLines": "2,3,4,5,6,7,8,9,12,17",
+                        "endColumns": "103,63,66,63,115,125,125,127,12,12",
+                        "endOffsets": "154,218,285,349,465,591,717,845,1017,1355"
+                    },
+                    "to": {
+                        "startLines": "2,3,4,5,29,30,31,32,33,36",
+                        "startColumns": "4,4,4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,159,223,290,1793,1909,2035,2161,2289,2461",
+                        "endLines": "2,3,4,5,29,30,31,32,35,40",
+                        "endColumns": "103,63,66,63,115,125,125,127,12,12",
+                        "endOffsets": "154,218,285,349,1904,2030,2156,2284,2456,2794"
+                    }
+                },
+                {
+                    "source": "/home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/res/values-v21/styles.xml",
+                    "from": {
+                        "startLines": "2,13",
+                        "startColumns": "4,4",
+                        "startOffsets": "55,719",
+                        "endLines": "12,24",
+                        "endColumns": "9,9",
+                        "endOffsets": "714,1489"
+                    },
+                    "to": {
+                        "startLines": "6,17",
+                        "startColumns": "4,4",
+                        "startOffsets": "354,1018",
+                        "endLines": "16,28",
+                        "endColumns": "9,9",
+                        "endOffsets": "1013,1788"
+                    }
+                }
+            ]
+        }
+    ]
+}

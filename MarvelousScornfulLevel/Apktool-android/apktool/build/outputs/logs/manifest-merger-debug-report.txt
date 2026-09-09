@@ -1,0 +1,209 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:2:1-51:12
+INJECTED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:2:1-51:12
+INJECTED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:2:1-51:12
+INJECTED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:2:1-51:12
+MERGED from [androidx.fragment:fragment:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/9786ed581904670b08a987ad2eaa0cef/transformed/fragment-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.legacy:legacy-support-core-ui:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/d174be3f82a78951725b236926c8d29a/transformed/legacy-support-core-ui-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.drawerlayout:drawerlayout:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/53b5613f0cbfab0eca9863d13f9383e8/transformed/drawerlayout-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.viewpager:viewpager:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/74ea6b75ddf835c391fd3ae10ef256a8/transformed/viewpager-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.swiperefreshlayout:swiperefreshlayout:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/c9c8afd7a36b4442ec74313f160443f5/transformed/swiperefreshlayout-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.interpolator:interpolator:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/42be9a48ee4dc4cde44b108a4e7174ab/transformed/interpolator-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/93be9b5a040287d6a7d28534ecf69643/transformed/coordinatorlayout-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.slidingpanelayout:slidingpanelayout:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/7110a16e0dfea6b16264fa055315519d/transformed/slidingpanelayout-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.customview:customview:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/601d0a907251507132895e8c193e5a19/transformed/customview-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/0576edc55141ee39a83879f336d310f0/transformed/legacy-support-core-utils-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.loader:loader:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/d5977ac61df76255e89de1fa92b20e12/transformed/loader-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.asynclayoutinflater:asynclayoutinflater:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/4c83b6f756b7bd65758223035797b0a7/transformed/asynclayoutinflater-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.core:core:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/abc43769634d5588c1dfd894b7f3ecfa/transformed/core-1.0.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.0.0] /home/runner/.gradle/caches/8.11.1/transforms/24dbcab1652126dcfff0852a87d89dc5/transformed/lifecycle-viewmodel-2.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/ac8f96ffbfe22ffaae5420afd9103cca/transformed/versionedparcelable-1.0.0/AndroidManifest.xml:17:1-25:12
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.0.0] /home/runner/.gradle/caches/8.11.1/transforms/e8d33763d4a2bc3d26f3a2639043b4f6/transformed/lifecycle-runtime-2.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/863ac9545fe7517796c50c7d10561922/transformed/cursoradapter-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.documentfile:documentfile:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/14bb1b878b81f88566bdbdb2cbb4e240/transformed/documentfile-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/130d978bc49c1064d7e71284d50c8b4f/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.print:print:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/9b567dbbfc20a834c9ab8e849b7ca313/transformed/print-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.0.0] /home/runner/.gradle/caches/8.11.1/transforms/652c2b3f1a64985ae5b04140bb54ca27/transformed/lifecycle-livedata-2.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.0.0] /home/runner/.gradle/caches/8.11.1/transforms/ac30e4fb19404b9a51ddce314d0f7a0d/transformed/lifecycle-livedata-core-2.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.arch.core:core-runtime:2.0.0] /home/runner/.gradle/caches/8.11.1/transforms/7154e130481f51ece8b131a808e3a82e/transformed/core-runtime-2.0.0/AndroidManifest.xml:17:1-22:12
+	package
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:4:2-33
+		INJECTED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml
+	android:versionName
+		INJECTED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml
+	android:versionCode
+		INJECTED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:3:2-60
+uses-permission#android.permission.READ_EXTERNAL_STORAGE
+ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:5:2-76
+	android:name
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:5:19-74
+uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
+ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:6:2-77
+	android:name
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:6:19-75
+uses-permission#android.permission.MANAGE_EXTERNAL_STORAGE
+ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:7:2-78
+	android:name
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:7:19-76
+uses-permission#android.permission.REQUEST_INSTALL_PACKAGES
+ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:8:2-79
+	android:name
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:8:19-77
+uses-permission#android.permission.REQUEST_DELETE_PACKAGES
+ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:9:2-78
+	android:name
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:9:19-76
+uses-permission#android.permission.QUERY_ALL_PACKAGES
+ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:10:2-73
+	android:name
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:10:19-71
+uses-permission#android.permission.SET_WALLPAPER
+ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:11:2-68
+	android:name
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:11:19-66
+application
+ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:12:2-50:16
+INJECTED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:12:2-50:16
+MERGED from [androidx.core:core:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/abc43769634d5588c1dfd894b7f3ecfa/transformed/core-1.0.0/AndroidManifest.xml:22:5-89
+MERGED from [androidx.core:core:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/abc43769634d5588c1dfd894b7f3ecfa/transformed/core-1.0.0/AndroidManifest.xml:22:5-89
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/ac8f96ffbfe22ffaae5420afd9103cca/transformed/versionedparcelable-1.0.0/AndroidManifest.xml:22:5-23:19
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/ac8f96ffbfe22ffaae5420afd9103cca/transformed/versionedparcelable-1.0.0/AndroidManifest.xml:22:5-23:19
+	android:extractNativeLibs
+		INJECTED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml
+	android:appComponentFactory
+		ADDED from [androidx.core:core:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/abc43769634d5588c1dfd894b7f3ecfa/transformed/core-1.0.0/AndroidManifest.xml:22:18-86
+	android:label
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:16:3-35
+	android:resizeableActivity
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:18:3-36
+	android:largeHeap
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:15:3-27
+	android:icon
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:14:3-33
+	android:theme
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:17:3-39
+	android:name
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:13:3-37
+activity#com.a4455jkjh.apktool.MainActivity
+ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:19:3-32:14
+	android:label
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:24:4-36
+	android:launchMode
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:22:4-35
+	android:windowSoftInputMode
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:25:4-46
+	android:exported
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:21:4-27
+	android:configChanges
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:23:4-65
+	android:name
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:20:4-32
+intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.DEFAULT+category:name:android.intent.category.HOME+category:name:android.intent.category.LAUNCHER
+ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:26:4-31:20
+action#android.intent.action.MAIN
+ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:27:5-56
+	android:name
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:27:13-54
+category#android.intent.category.LAUNCHER
+ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:28:5-64
+	android:name
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:28:15-62
+category#android.intent.category.HOME
+ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:29:5-60
+	android:name
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:29:15-58
+category#android.intent.category.DEFAULT
+ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:30:5-63
+	android:name
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:30:15-61
+activity#com.a4455jkjh.apktool.AppDrawerActivity
+ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:33:1-36:35
+	android:label
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:36:1-33
+	android:exported
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:35:1-25
+	android:name
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:34:1-34
+activity#com.a4455jkjh.apktool.InstallApkActivity
+ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:37:1-40:38
+	android:label
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:40:1-36
+	android:exported
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:39:1-25
+	android:name
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:38:1-35
+activity#com.a4455jkjh.apktool.WallpaperActivity
+ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:41:1-44:45
+	android:label
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:44:1-43
+	android:exported
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:43:1-25
+	android:name
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:42:1-34
+provider#com.a4455jkjh.apktool.FileProvider
+ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:45:3-49:40
+	android:grantUriPermissions
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:49:4-38
+	android:authorities
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:48:4-52
+	android:exported
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:47:4-28
+	android:name
+		ADDED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml:46:4-53
+uses-sdk
+INJECTED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml
+INJECTED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml
+MERGED from [androidx.fragment:fragment:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/9786ed581904670b08a987ad2eaa0cef/transformed/fragment-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.fragment:fragment:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/9786ed581904670b08a987ad2eaa0cef/transformed/fragment-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.legacy:legacy-support-core-ui:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/d174be3f82a78951725b236926c8d29a/transformed/legacy-support-core-ui-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.legacy:legacy-support-core-ui:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/d174be3f82a78951725b236926c8d29a/transformed/legacy-support-core-ui-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.drawerlayout:drawerlayout:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/53b5613f0cbfab0eca9863d13f9383e8/transformed/drawerlayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.drawerlayout:drawerlayout:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/53b5613f0cbfab0eca9863d13f9383e8/transformed/drawerlayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.viewpager:viewpager:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/74ea6b75ddf835c391fd3ae10ef256a8/transformed/viewpager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.viewpager:viewpager:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/74ea6b75ddf835c391fd3ae10ef256a8/transformed/viewpager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.swiperefreshlayout:swiperefreshlayout:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/c9c8afd7a36b4442ec74313f160443f5/transformed/swiperefreshlayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.swiperefreshlayout:swiperefreshlayout:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/c9c8afd7a36b4442ec74313f160443f5/transformed/swiperefreshlayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/42be9a48ee4dc4cde44b108a4e7174ab/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/42be9a48ee4dc4cde44b108a4e7174ab/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/93be9b5a040287d6a7d28534ecf69643/transformed/coordinatorlayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/93be9b5a040287d6a7d28534ecf69643/transformed/coordinatorlayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.slidingpanelayout:slidingpanelayout:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/7110a16e0dfea6b16264fa055315519d/transformed/slidingpanelayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.slidingpanelayout:slidingpanelayout:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/7110a16e0dfea6b16264fa055315519d/transformed/slidingpanelayout-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.customview:customview:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/601d0a907251507132895e8c193e5a19/transformed/customview-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.customview:customview:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/601d0a907251507132895e8c193e5a19/transformed/customview-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/0576edc55141ee39a83879f336d310f0/transformed/legacy-support-core-utils-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/0576edc55141ee39a83879f336d310f0/transformed/legacy-support-core-utils-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.loader:loader:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/d5977ac61df76255e89de1fa92b20e12/transformed/loader-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.loader:loader:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/d5977ac61df76255e89de1fa92b20e12/transformed/loader-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.asynclayoutinflater:asynclayoutinflater:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/4c83b6f756b7bd65758223035797b0a7/transformed/asynclayoutinflater-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.asynclayoutinflater:asynclayoutinflater:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/4c83b6f756b7bd65758223035797b0a7/transformed/asynclayoutinflater-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.core:core:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/abc43769634d5588c1dfd894b7f3ecfa/transformed/core-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.core:core:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/abc43769634d5588c1dfd894b7f3ecfa/transformed/core-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.0.0] /home/runner/.gradle/caches/8.11.1/transforms/24dbcab1652126dcfff0852a87d89dc5/transformed/lifecycle-viewmodel-2.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.0.0] /home/runner/.gradle/caches/8.11.1/transforms/24dbcab1652126dcfff0852a87d89dc5/transformed/lifecycle-viewmodel-2.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/ac8f96ffbfe22ffaae5420afd9103cca/transformed/versionedparcelable-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/ac8f96ffbfe22ffaae5420afd9103cca/transformed/versionedparcelable-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.0.0] /home/runner/.gradle/caches/8.11.1/transforms/e8d33763d4a2bc3d26f3a2639043b4f6/transformed/lifecycle-runtime-2.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.0.0] /home/runner/.gradle/caches/8.11.1/transforms/e8d33763d4a2bc3d26f3a2639043b4f6/transformed/lifecycle-runtime-2.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/863ac9545fe7517796c50c7d10561922/transformed/cursoradapter-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/863ac9545fe7517796c50c7d10561922/transformed/cursoradapter-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.documentfile:documentfile:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/14bb1b878b81f88566bdbdb2cbb4e240/transformed/documentfile-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.documentfile:documentfile:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/14bb1b878b81f88566bdbdb2cbb4e240/transformed/documentfile-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/130d978bc49c1064d7e71284d50c8b4f/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/130d978bc49c1064d7e71284d50c8b4f/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.print:print:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/9b567dbbfc20a834c9ab8e849b7ca313/transformed/print-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.print:print:1.0.0] /home/runner/.gradle/caches/8.11.1/transforms/9b567dbbfc20a834c9ab8e849b7ca313/transformed/print-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.0.0] /home/runner/.gradle/caches/8.11.1/transforms/652c2b3f1a64985ae5b04140bb54ca27/transformed/lifecycle-livedata-2.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.0.0] /home/runner/.gradle/caches/8.11.1/transforms/652c2b3f1a64985ae5b04140bb54ca27/transformed/lifecycle-livedata-2.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.0.0] /home/runner/.gradle/caches/8.11.1/transforms/ac30e4fb19404b9a51ddce314d0f7a0d/transformed/lifecycle-livedata-core-2.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.0.0] /home/runner/.gradle/caches/8.11.1/transforms/ac30e4fb19404b9a51ddce314d0f7a0d/transformed/lifecycle-livedata-core-2.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.arch.core:core-runtime:2.0.0] /home/runner/.gradle/caches/8.11.1/transforms/7154e130481f51ece8b131a808e3a82e/transformed/core-runtime-2.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.arch.core:core-runtime:2.0.0] /home/runner/.gradle/caches/8.11.1/transforms/7154e130481f51ece8b131a808e3a82e/transformed/core-runtime-2.0.0/AndroidManifest.xml:20:5-44
+	android:targetSdkVersion
+		INJECTED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/AndroidManifest.xml

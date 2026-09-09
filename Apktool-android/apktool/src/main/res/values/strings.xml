@@ -4,14 +4,14 @@
     <string name="app_name">Master Launcher</string>
     <string name="master_home_subtitle">Every app. One clean home.</string>
     <string name="launcher_apps">Your apps</string>
-    <string name="launcher_app_count">%1$d openable apps</string>
+    <string name="launcher_app_count">%1$d apps</string>
     <string name="launcher_sort_hint">Recent first</string>
     <string name="launcher_search_hint">Search apps</string>
     <string name="launcher_default">Make default launcher</string>
     <string name="launcher_default_active">Default launcher</string>
     <string name="launcher_default_message">Master Launcher can be your Android home screen. Choose it in the system launcher settings so your apps are always one tap away.</string>
     <string name="launcher_default_unavailable">Android did not provide the default launcher chooser.</string>
-    <string name="launcher_no_apps">No launchable apps found.</string>
+    <string name="launcher_no_apps">No apps found.</string>
     <string name="launcher_no_search_results">No apps match your search.</string>
     <string name="launcher_menu_title">Launcher menu</string>
     <string name="launcher_wallpaper">Wallpaper</string>

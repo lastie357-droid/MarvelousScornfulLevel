@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@color/master_background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingTop="18dp"
+            android:paddingBottom="28dp">
+
+            <ImageView
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:src="@mipmap/apktool"
+                android:contentDescription="@string/app_name" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/app_name"
+                android:textColor="@color/master_text"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="@string/master_home_subtitle"
+                android:textColor="@color/master_muted"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/master_tools"
+            android:textColor="@color/master_accent"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.1" />
+
+        <Button
+            android:id="@+id/open_apktool"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/master_button"
+            android:gravity="center_vertical"
+            android:minHeight="64dp"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:text="@string/open_apktool"
+            android:textColor="@color/master_button_text"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/open_browser"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/master_button_secondary"
+            android:gravity="center_vertical"
+            android:minHeight="64dp"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:text="@string/open_browser"
+            android:textColor="@color/master_text"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/open_media"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/master_button_secondary"
+            android:gravity="center_vertical"
+            android:minHeight="64dp"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:text="@string/media_hub"
+            android:textColor="@color/master_text"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/open_tools"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/master_button_secondary"
+            android:gravity="center_vertical"
+            android:minHeight="64dp"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:text="@string/tools_title"
+            android:textColor="@color/master_text"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="26dp"
+            android:text="@string/master_apps"
+            android:textColor="@color/master_accent"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.1" />
+
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:columnCount="2"
+            android:useDefaultMargins="true">
+
+            <Button
+                android:id="@+id/open_messenger"
+                android:layout_width="0dp"
+                android:layout_height="112dp"
+                android:layout_columnWeight="1"
+                android:background="@drawable/master_button_secondary"
+                android:contentDescription="@string/messenger"
+                android:gravity="center"
+                android:text="@string/messenger_launcher_label"
+                android:textColor="@color/master_text"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/open_phone_dialer"
+                android:layout_width="0dp"
+                android:layout_height="112dp"
+                android:layout_columnWeight="1"
+                android:background="@drawable/master_button_secondary"
+                android:contentDescription="@string/phone_dialer"
+                android:gravity="center"
+                android:text="@string/phone_dialer_launcher_label"
+                android:textColor="@color/master_text"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </GridLayout>
+
+        <Button
+            android:id="@+id/set_default_browser"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/master_button_secondary"
+            android:gravity="center_vertical"
+            android:minHeight="64dp"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:text="@string/set_default_browser"
+            android:textColor="@color/master_text"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/set_default_sms"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/master_button_secondary"
+            android:gravity="center_vertical"
+            android:minHeight="64dp"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:text="@string/set_default_sms"
+            android:textColor="@color/master_text"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/open_settings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/master_button_secondary"
+            android:gravity="center_vertical"
+            android:minHeight="56dp"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:text="@string/settings"
+            android:textColor="@color/master_muted"
+            android:textSize="16sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="26dp"
+            android:text="@string/master_home_note"
+            android:textColor="@color/master_muted"
+            android:textSize="13sp"
+            android:lineSpacingExtra="3dp" />
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,21 @@
+{
+  "version": 3,
+  "artifactType": {
+    "type": "APK",
+    "kind": "Directory"
+  },
+  "applicationId": "com.a4455jkjh.apktool",
+  "variantName": "debug",
+  "elements": [
+    {
+      "type": "SINGLE",
+      "filters": [],
+      "attributes": [],
+      "versionCode": 1903280240,
+      "versionName": "2.4.0-190328",
+      "outputFile": "apktool-debug.apk"
+    }
+  ],
+  "elementType": "File",
+  "minSdkVersionForDexing": 14
+}

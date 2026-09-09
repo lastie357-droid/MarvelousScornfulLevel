@@ -7,10 +7,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
-import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.graphics.Color;
 import android.net.Uri;
 import android.provider.Settings;
@@ -38,10 +36,9 @@ import java.util.Set;
  * Shared installed-app grid for the launcher and its hidden-app screen.
  *
  * Every app action intentionally goes through Android's public intents.
- * Only packages with an exported, externally resolvable MAIN/LAUNCHER
- * singleTop activity are included, so background services, content-only
- * packages, and activities that always create another instance never appear
- * as dead cards.
+ * The grid contains every installed application package. Apps without a
+ * launch activity can still be inspected, hidden, or uninstalled from their
+ * card menu; tapping their card reports that Android has no activity to open.
  */
 public final class LauncherApps {
     private static final String PREFS = "master_launcher";
@@ -94,44 +91,25 @@ public final class LauncherApps {
 
     private void loadApps() {
         allEntries.clear();
-        Set<String> seenPackages = new HashSet<String>();
         Set<String> hiddenPackages = hiddenPackages();
-        Intent launcherIntent = new Intent(Intent.ACTION_MAIN);
-        launcherIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-        List<ResolveInfo> results =
-                packageManager.queryIntentActivities(launcherIntent, 0);
+        List<ApplicationInfo> results =
+                packageManager.getInstalledApplications(PackageManager.GET_META_DATA);
 
-        for (ResolveInfo resolved : results) {
-            if (resolved == null || resolved.activityInfo == null
-                    || resolved.activityInfo.applicationInfo == null) {
+        for (ApplicationInfo info : results) {
+            if (info == null) {
                 continue;
             }
-            ApplicationInfo info = resolved.activityInfo.applicationInfo;
             String packageName = info.packageName;
-            if (packageName.equals(activity.getPackageName()) || seenPackages.contains(packageName)) {
+            if (packageName == null || packageName.equals(activity.getPackageName())) {
                 continue;
             }
-            // A package can expose a launcher intent that is disabled or not
-            // exported. It is not actually openable from this launcher then.
-            if (!info.enabled || !resolved.activityInfo.enabled
-                    || !resolved.activityInfo.exported
-                    || resolved.activityInfo.launchMode != ActivityInfo.LAUNCH_SINGLE_TOP
-                    || resolved.activityInfo.name == null) {
-                continue;
-            }
-            Intent target = new Intent(launcherIntent)
-                    .setComponent(new android.content.ComponentName(
-                            packageName, resolved.activityInfo.name));
-            if (target.resolveActivity(packageManager) == null) {
-                continue;
-            }
-            seenPackages.add(packageName);
             if (hiddenOnly != hiddenPackages.contains(packageName)) {
                 continue;
             }
 
             try {
                 PackageInfo packageInfo = packageManager.getPackageInfo(packageName, 0);
+                Intent target = packageManager.getLaunchIntentForPackage(packageName);
                 allEntries.add(new AppEntry(
                         packageName,
                         info.loadLabel(packageManager),

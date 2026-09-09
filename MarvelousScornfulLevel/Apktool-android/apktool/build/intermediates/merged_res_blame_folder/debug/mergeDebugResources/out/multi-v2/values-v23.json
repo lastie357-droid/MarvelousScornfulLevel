@@ -1,0 +1,28 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.a4455jkjh.apktool-mergeDebugResources-4:/values-v23/values-v23.xml",
+            "map": [
+                {
+                    "source": "/home/runner/workspace/MarvelousScornfulLevel/Apktool-android/apktool/src/main/res/values-v23/styles.xml",
+                    "from": {
+                        "startLines": "24,25,2,12",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "1444,1502,55,666",
+                        "endLines": "24,25,11,23",
+                        "endColumns": "57,63,9,9",
+                        "endOffsets": "1497,1561,661,1439"
+                    },
+                    "to": {
+                        "startLines": "2,3,4,14",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "55,113,177,788",
+                        "endLines": "2,3,13,25",
+                        "endColumns": "57,63,9,9",
+                        "endOffsets": "108,172,783,1561"
+                    }
+                }
+            ]
+        }
+    ]
+}
